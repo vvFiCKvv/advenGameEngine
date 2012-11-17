@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<game>
+	<!-- Describes a list of  scenes(camera view) -->
+	<scenes>
+		<scene>
+			<name>Room_01_wall01</name>
+			<!--Possible way outs to another scene or ... -->
+			<pathways>
+				<direction>
+					<name>west</name>
+					<image><url>westArrow.jpg</url></image>
+					<location></location>
+					<action>
+						<event>onClick</event>
+						<message>going west</message>
+						<command><name>changeState</name><data>Room_01_wall02</data></command>								
+					</action>
+				</direction>
+			</pathways>
+			<!-- Possible objects(each object may have some actions ) -->
+			<objects>
+				<object>
+					<location></location>
+					<name>sirtati_01</name>
+					<state>closed</state>
+					<states>
+						<state>
+							<name>opened</name>
+							<image><url>sirtati_01_open.jpg</url></image>
+							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
+							<action>
+								<event>onClick</event>
+								<message>closing</message>
+								<command><name>changeState</name><data>closed</data></command>								
+							</action>
+						</state>
+						<state>
+							<name>openedFirstTime</name>
+							<image><url>sirtati_01_openFirstTime.jpg</url></image>
+							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->
+							<action>
+								<event>onStateLoad</event>
+								<message>play video1</message>
+								<command><name>play</name><data>video1_01</data></command>							
+							</action>
+							<action>
+								<event>onClick</event>
+								<message>found a knife</message>
+								<command><name>inventory</name><data>knife</data></command>
+								<command><name>changeState</name><data>opened</data></command>
+							</action>							
+						</state>
+						<state>
+							<name>semiOpen</name>
+							<image><url>sirtati_01_semiOpen.jpg</url></image>
+							<action>
+								<event>onClick</event>								
+								<requires><item>screwDriver</item><condition>condition_FirstTime</condition></requires>
+								<message>opening</message>
+								<command><name>changeState</name><data>openedFirstTime</data></command>								
+							</action>
+							<action>
+								<event>onClick</event>								
+								<message>closing</message>
+								<command><name>changeState</name><data>opened</data></command>	
+							</action>						
+						</state>
+						<state>
+							<name>closed</name>
+							<image><url>sirtati_01_closed.jpg</url></image>
+							<action>
+								<event>onClick</event>
+								<message>you need the password and the key</message>
+							</action>
+							<action>
+								<event>onClick</event>
+								<requires><item>key</item></requires>
+								<message>ender code</message>
+								<command><name>insertCode</name><data><condition>condition_passwd</condition><password>1243</password></data></command>							
+							</action>
+							<action>
+								<event>onClick</event>
+								<requires><condition>condition_passwd</condition></requires>
+								<message>unlocked</message>
+								<command><name>changeState</name><data>semiopened</data></command>	
+							</action>
+						</state>
+					</states>
+				<!--A set of conditions(flags) and status(value) of them -->
+				<conditions><condition><name>condition_passwd</name><status>false</status></condition></conditions>
+				</object>
+			</objects>
+			<background><url>/Room_01_wall01/bgImage.jpg</url></background>
+	
+		</scene>
+	</scenes>
+<!--Describes all the possible objects-->
+	<objects>
+		<!-- an item may be disassembly to a set of items -->
+		<item name="FakosAnamenos">
+		   <image>FakosAnamenos.jpg</image>
+		   <detailImage>FakosAnamenosKrimenoMinima.jpg</detailImage>
+		   <message>Doulevei!</message>
+		   <DisasemblyPart>FakosXalasmenos</DisasemblyPart>
+		   <DisasemblyPart>Mpataria</DisasemblyPart>
+		</item>
+		<item name="FakosXalasmenos">
+		   <image>FakosXalasmenos.jpg</image>
+		   <message>Einai Xalasmenos, prepei na min exei mpataries!</message>
+		</item>
+		<item name="Mpataria">
+		   <image>Mpataria.jpg</image>
+		   <message>Mpataria blender, pou mporei na sindiastei arage?</message>
+		</item>
+	</objects>
+	<!-- items of inventory -->
+	<inventory><item>FakosAnamenos</item><item>FakosAnamenos</item><item>FakosXalasmenos</item></inventory>
+	<!--A general set of conditions(flags) and status(value) of them -->
+	<conditions><condition><name>contition_passwd</name><status>false</status></condition></conditions>
+	<!-- A set of videos that may be shown after an action -->
+	<videos>
+		<video><name>video_01</name><url>intro.mpg</url></video>
+	</videos>
+</game>
