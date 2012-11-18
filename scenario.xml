@@ -39,7 +39,7 @@
 								</command>							
 							</action>
 							<action event="onClick">
-								<command name="inventory" data="knife">
+								<command name="inventoryAdd" data="knife">
 									<message>found a knife</message>
 								</command>
 								<command name="changeState" data="opened"></command>
@@ -94,21 +94,36 @@
 <!--Describes all the possible objects-->
 	<objects>
 		<!-- an item may be disassembly to a set of items -->
-		<item name="FakosAnamenos">
-		   <image>FakosAnamenos.jpg</image>
-		   <detailImage>FakosAnamenosKrimenoMinima.jpg</detailImage>
-		   <message>Doulevei!</message>
-		   <DisasemblyPart>FakosXalasmenos</DisasemblyPart>
-		   <DisasemblyPart>Mpataria</DisasemblyPart>
+		<item name="flashLight">
+		   <image url="flashLight.jpg"></image>
+		   <detailImage>flashLightHidenMessage.jpg</detailImage>
+		   <message>it works!</message>
 		</item>
-		<item name="FakosXalasmenos">
-		   <image>FakosXalasmenos.jpg</image>
-		   <message>Einai Xalasmenos, prepei na min exei mpataries!</message>
+		<item name="flashLightBroken">
+		   <image url="flashLightBroken.jpg"></image>
+		   <message>its broken, i can fix it with a battery!</message>
 		</item>
-		<item name="Mpataria">
-		   <image>Mpataria.jpg</image>
-		   <message>Mpataria blender, pou mporei na sindiastei arage?</message>
+		<item name="battery">
+		   <image url="battery.jpg"></image>
+		   <message>a battery,?i wanter where i can use it!</message>
 		</item>
+		<item name="screwDriver">
+		   <image url="screwDriver.jpg"></image>
+		   <message>its a screw driver!</message>
+		</item>
+		<interaction>
+			<requires>
+				<item name="flashLightBroken"></item>
+				<item name="battery"></item>
+				<condition name="condition_darkRoom"></condition>
+			</requires>
+				<command name="inventoryAdd" data="flashLight">
+						<message>combined flash light with battery, flash light works.</message>
+						<message>yeah!</message>
+				</command>
+				<command name="inventoryRemove" data="flashLightBroken"></command>
+				<command name="inventoryRemove" data="battery"></command>	
+		</interaction>
 	</objects>
 	<!-- A set of videos that may be shown after an action -->
 	<videos>
@@ -117,7 +132,7 @@
 	<!-- Contains Runtime Environment Structures. This part will change dynamic during runtime-->
 	<environment>
 		<!-- items of inventory -->
-		<inventory><item>FakosAnamenos</item><item>FakosAnamenos</item><item>FakosXalasmenos</item></inventory>
+		<inventory><item name="flashLightBroken"></item><item name="battery"></item><item name="screwDriver"></item></inventory>
 		<!--A general set of conditions(flags) and status(value) of them -->
 		<conditions><condition><name>contition_passwd</name><status>false</status></condition></conditions>
 		<!-- The current scene  -->
