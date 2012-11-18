@@ -2,95 +2,92 @@
 <game>
 	<!-- Describes a list of  scenes(camera view) -->
 	<scenes>
-		<scene>
-			<name>Room_01_wall01</name>
+		<scene name="Room_01_wall01" firstScene="true">
 			<!--Possible way outs to another scene or ... -->
 			<pathways>
 				<direction>
 					<name>west</name>
-					<image><url>westArrow.jpg</url></image>
+					<image url="westArrow.jpg"></image>
 					<location></location>
-					<action>
-						<event>onClick</event>
-						<message>going west</message>
-						<command><name>changeState</name><data>Room_01_wall02</data></command>								
+					<action event="onClick">
+						<command name="changeState" data="Room_01_wall02"><message>going west</message></command>								
 					</action>
 				</direction>
 			</pathways>
 			<!-- Possible objects(each object may have some actions ) -->
 			<objects>
-				<object>
+				<object name="sirtati_01">
 					<location></location>
-					<name>sirtati_01</name>
+					<!-- this is the initial state, will be changed during runtime -->
 					<state>closed</state>
 					<states>
-						<state>
-							<name>opened</name>
-							<image><url>sirtati_01_open.jpg</url></image>
+						<state name="opened">
+							<image url="irtati_01_open.jpg"></image>
 							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
-							<action>
-								<event>onClick</event>
-								<message>closing</message>
-								<command><name>changeState</name><data>closed</data></command>								
+							<action event="onClick">
+								<command name="changeState" data="closed">
+									<message>closing</message>
+								</command>								
 							</action>
 						</state>
-						<state>
-							<name>openedFirstTime</name>
-							<image><url>sirtati_01_openFirstTime.jpg</url></image>
+						<state name="openedFirstTime">
+							<image url="sirtati_01_openFirstTime.jpg"></image>
 							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->
-							<action>
-								<event>onStateLoad</event>
-								<message>play video1</message>
-								<command><name>play</name><data>video1_01</data></command>							
+							<action event="onStateLoad">	
+								<command name="play" data="video1_01">
+									<message>well done!</message>
+								</command>							
 							</action>
-							<action>
-								<event>onClick</event>
-								<message>found a knife</message>
-								<command><name>inventory</name><data>knife</data></command>
-								<command><name>changeState</name><data>opened</data></command>
+							<action event="onClick">
+								<command name="inventory" data="knife">
+									<message>found a knife</message>
+								</command>
+								<command name="changeState" data="opened"></command>
 							</action>							
 						</state>
-						<state>
-							<name>semiOpen</name>
-							<image><url>sirtati_01_semiOpen.jpg</url></image>
-							<action>
-								<event>onClick</event>								
-								<requires><item>screwDriver</item><condition>condition_FirstTime</condition></requires>
-								<message>opening</message>
-								<command><name>changeState</name><data>openedFirstTime</data></command>								
+						<state name="semiOpen">
+							<image url="sirtati_01_semiOpen.jpg"></image>
+							<action event="onClick">							
+								<requires>
+									<item name="screwDriver"></item>
+									<condition name="condition_FirstTime"></condition>
+								</requires>
+								<command name="changeState" data="openedFirstTime">
+									<message>opening</message>
+								</command>								
 							</action>
-							<action>
-								<event>onClick</event>								
-								<message>closing</message>
-								<command><name>changeState</name><data>opened</data></command>	
+							<action event="onClick">
+								<command name="changeState" data="opened">
+									<message>closing</message>
+								</command>	
 							</action>						
 						</state>
-						<state>
-							<name>closed</name>
-							<image><url>sirtati_01_closed.jpg</url></image>
-							<action>
-								<event>onClick</event>
-								<message>you need the password and the key</message>
+						<state name="closed">
+							<image url="sirtati_01_closed.jpg"></image>
+							<action event="onClick">
+								<command>
+									<message>you need the password and the key!</message>
+									<message>it has a key lock!</message>
+								</command>
 							</action>
-							<action>
-								<event>onClick</event>
+							<action event="onClick">
 								<requires><item>key</item></requires>
-								<message>ender code</message>
-								<command><name>insertCode</name><data><condition>condition_passwd</condition><password>1243</password></data></command>							
+								<command name="insertCode">
+									<data><condition>condition_passwd</condition><password>1243</password></data>
+									<message>the code is common, can you guess?</message>
+									<message>the code is numeric 4 characters and start with 1</message>
+									<message>it's 1234 idiot!</message>
+								</command>							
 							</action>
-							<action>
-								<event>onClick</event>
+							<action event="onClick">
 								<requires><condition>condition_passwd</condition></requires>
-								<message>unlocked</message>
-								<command><name>changeState</name><data>semiopened</data></command>	
+								<command name="changeState" data="semiopened"><message>well done, its unlocked</message></command>	
 							</action>
 						</state>
 					</states>
-				<!--A set of conditions(flags) and status(value) of them -->
-				<conditions><condition><name>condition_passwd</name><status>false</status></condition></conditions>
 				</object>
 			</objects>
-			<background><url>/Room_01_wall01/bgImage.jpg</url></background>
+			<background url="/Room_01_wall01/bgImage.jpg"></background>
 	
 		</scene>
 	</scenes>
@@ -113,12 +110,17 @@
 		   <message>Mpataria blender, pou mporei na sindiastei arage?</message>
 		</item>
 	</objects>
-	<!-- items of inventory -->
-	<inventory><item>FakosAnamenos</item><item>FakosAnamenos</item><item>FakosXalasmenos</item></inventory>
-	<!--A general set of conditions(flags) and status(value) of them -->
-	<conditions><condition><name>contition_passwd</name><status>false</status></condition></conditions>
 	<!-- A set of videos that may be shown after an action -->
 	<videos>
-		<video><name>video_01</name><url>intro.mpg</url></video>
+		<video name="video_01" url="intro.mpg"></video>
 	</videos>
+	<!-- Contains Runtime Environment Structures. This part will change dynamic during runtime-->
+	<environment>
+		<!-- items of inventory -->
+		<inventory><item>FakosAnamenos</item><item>FakosAnamenos</item><item>FakosXalasmenos</item></inventory>
+		<!--A general set of conditions(flags) and status(value) of them -->
+		<conditions><condition><name>contition_passwd</name><status>false</status></condition></conditions>
+		<!-- The current scene  -->
+		<scene></scene>
+	</environment>
 </game>

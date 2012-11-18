@@ -1,6 +1,7 @@
 //When document is loaded call init(). this may occurred before all httpRequests finished
 $(document).ready(function(){init();});
 
+var environment;
 function init()
 {
 	$.ajax({
@@ -9,19 +10,30 @@ function init()
 	    dataType: "xml",
 	    success: parseXml
 	  });
+	//alert(environment);
+	//var xml = $.parseXML(environment);
+	
+	
 }
+ 
 
 function parseXml(xml)
 {
-	printInventoryItems(xml);
-}
-function printInventoryItems(xml)
-{
 
+	//environment = xmlToString($(xml).find("environment"));
+	//alert(environment);
+	//xml = $.parseXML(environment);
+	
+	getInventoryItems(xml, function(xml,name){
+		$("#output").append(getInventoryObjectImage(xml,name) + "<br />");
+	});
+	
+}
+function getInventoryItems(xml,callback)
+{
 	 $(xml).find("inventory > item").each(function()
-		  {	
-			  var res = getInventoryObjectImage(xml,$(this).text());
-			  $("#output").append(res + "<br />");
+		  {	 
+			  callback(xml,$(this).text());
 		  });
 }
 function getInventoryObjectImage(xml,name)
@@ -34,5 +46,15 @@ function getInventoryObjectImage(xml,name)
 		  });	
 	return res;
 }
-
+function xmlToString(xmlData) 
+{
+    var xmlString;
+    if (window.ActiveXObject){ 
+        xmlString = xmlData.xml; 
+      } else {
+        var oSerializer = new XMLSerializer(); 
+        xmlString = oSerializer.serializeToString(xmlData[0]);
+      } 
+    return xmlString;
+} 
 
