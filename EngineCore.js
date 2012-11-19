@@ -46,10 +46,14 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 p._runTest = function()
 	{
 		
-		var xml = $(this.xmlString);
+		var xml = $($.parseXML(this.xmlString));
+		
+		
+		
 		parentThis = this;		
 		this.inventoryCombineItems(xml,"flashLightBroken","battery",function(interction){
 			$(interction).find("command").each(function(){
+				
 				
 				var messages=$(this).find("message");
 				var rand = randomGen(0,messages.length);
@@ -126,10 +130,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 	//=================================Object Functions========================================
 	p.getObjectImage = function (xml,name)
 	{
+		var xmltxt = xmlToString(xml);
 		var res;
-		$(xml).find("inventory > objects > item[name='"+name+"']").each(function()
+		$(xml).find("inventory > objects > item[name='"+name+"'] > image").each(function()
 			  {	
-				  res =  $(this).children().attr('url');
+				  res =  $(this).attr('url');
 				  return;		    
 			  });
 		return res;

@@ -24,12 +24,15 @@ function parseXml(xml)
 
 function xmlToString(xmlData) 
 {
-    var xmlString;
+    var xmlString = "";
     if (window.ActiveXObject){ 
         xmlString = xmlData.xml; 
       } else {
         var oSerializer = new XMLSerializer(); 
-        xmlString = oSerializer.serializeToString(xmlData[0]);
+        for(var i=0;i<xmlData.length;i++)
+        {
+        xmlString += oSerializer.serializeToString(xmlData[i]);
+	}
       } 
     return xmlString;
 }
