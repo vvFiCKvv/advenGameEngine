@@ -18,8 +18,6 @@
 			<objects>
 				<object name="sirtati_01">
 					<location></location>
-					<!-- this is the initial state, will be changed during runtime -->
-					<state>closed</state>
 					<states>
 						<state name="opened">
 							<image url="irtati_01_open.jpg"></image>
@@ -72,15 +70,15 @@
 							</action>
 							<action event="onClick">
 								<requires><item>key</item></requires>
-								<command name="insertCode">
-									<data><condition>condition_passwd</condition><password>1243</password></data>
+								<command name="codecheck">
+									<data><codecheck condition="condition_passwd" password="1243"></codecheck></data>
 									<message>the code is common, can you guess?</message>
 									<message>the code is numeric 4 characters and start with 1</message>
 									<message>it's 1234 idiot!</message>
 								</command>							
 							</action>
 							<action event="onClick">
-								<requires><condition>condition_passwd</condition></requires>
+								<requires><condition name="condition_passwd"></condition></requires>
 								<command name="changeState" data="semiopened"><message>well done, its unlocked</message></command>	
 							</action>
 						</state>
@@ -91,51 +89,57 @@
 	
 		</scene>
 	</scenes>
-<!--Describes all the possible objects-->
-	<objects>
-		<!-- an item may be disassembly to a set of items -->
-		<item name="flashLight">
-		   <image url="flashLight.jpg"></image>
-		   <detailImage>flashLightHidenMessage.jpg</detailImage>
-		   <message>it works!</message>
-		</item>
-		<item name="flashLightBroken">
-		   <image url="flashLightBroken.jpg"></image>
-		   <message>its broken, i can fix it with a battery!</message>
-		</item>
-		<item name="battery">
-		   <image url="battery.jpg"></image>
-		   <message>a battery,?i wanter where i can use it!</message>
-		</item>
-		<item name="screwDriver">
-		   <image url="screwDriver.jpg"></image>
-		   <message>its a screw driver!</message>
-		</item>
-		<interaction>
-			<requires>
-				<item name="flashLightBroken"></item>
-				<item name="battery"></item>
-				<condition name="condition_darkRoom"></condition>
-			</requires>
-				<command name="inventoryAdd" data="flashLight">
-						<message>combined flash light with battery, flash light works.</message>
-						<message>yeah!</message>
-				</command>
-				<command name="inventoryRemove" data="flashLightBroken"></command>
-				<command name="inventoryRemove" data="battery"></command>	
-		</interaction>
-	</objects>
+	<inventory>
+		<!--Describes all the possible objects-->
+		<objects>
+			<!-- an item may be disassembly to a set of items -->
+			<item name="flashLight">
+			   <image url="flashLight.jpg"></image>
+			   <detailImage>flashLightHidenMessage.jpg</detailImage>
+			   <message>it works!</message>
+			</item>
+			<item name="flashLightBroken">
+			   <image url="flashLightBroken.jpg"></image>
+			   <message>its broken, i can fix it with a battery!</message>
+			</item>
+			<item name="battery">
+			   <image url="battery.jpg"></image>
+			   <message>a battery,?i wanter where i can use it!</message>
+			</item>
+			<item name="screwDriver">
+			   <image url="screwDriver.jpg"></image>
+			   <message>its a screw driver!</message>
+			</item>
+			<interaction>
+				<requires>
+					<item name="flashLightBroken"></item>
+					<item name="battery"></item>
+					<condition name="condition_darkRoom"></condition>
+				</requires>
+					<command name="inventoryAdd" data="flashLight">
+							<message>combined flash light with battery, flash light works.</message>
+							<message>yeah!</message>
+					</command>
+					<command name="inventoryRemove" data="flashLightBroken"></command>
+					<command name="inventoryRemove" data="battery"></command>	
+			</interaction>
+		</objects>
+	</inventory>
 	<!-- A set of videos that may be shown after an action -->
 	<videos>
 		<video name="video_01" url="intro.mpg"></video>
 	</videos>
 	<!-- Contains Runtime Environment Structures. This part will change dynamic during runtime-->
-	<environment>
+	<runtime>
 		<!-- items of inventory -->
 		<inventory><item name="flashLightBroken"></item><item name="battery"></item><item name="screwDriver"></item></inventory>
 		<!--A general set of conditions(flags) and status(value) of them -->
-		<conditions><condition><name>contition_passwd</name><status>false</status></condition></conditions>
+		<conditions><condition name="ontition_passwd" status="false"></condition></conditions>
 		<!-- The current scene  -->
 		<scene></scene>
-	</environment>
+		<!-- Objects variables -->
+		<objects>
+			<object name="sirtati_01" state="closed"></object>
+		</objects>
+	</runtime>
 </game>
