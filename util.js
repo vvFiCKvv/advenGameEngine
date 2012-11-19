@@ -17,22 +17,12 @@ function init()
 }
 function parseXml(xml)
 {
-	engine = new advenGameEngine.EngineCore(xmlToString($(xml)));
+	//engine = new advenGameEngine.EngineCore();
 	
-	engine.run();
+	var xmlString = advenGameEngine.EngineCore.jqueryToString($(xml));
+	engine = new advenGameEngine.EngineCore(xmlString);
+	//	engine.loadXmlString(xmlString);
+	engine.runPause();
 }
 
-function xmlToString(xmlData) 
-{
-    var xmlString = "";
-    if (window.ActiveXObject){ 
-        xmlString = xmlData.xml; 
-      } else {
-        var oSerializer = new XMLSerializer(); 
-        for(var i=0;i<xmlData.length;i++)
-        {
-        xmlString += oSerializer.serializeToString(xmlData[i]);
-	}
-      } 
-    return xmlString;
-}
+

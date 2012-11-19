@@ -1,75 +1,95 @@
-//namespace:
+//=================================NameSpace==========================================
 this.advenGameEngine = this.advenGameEngine||{};
 (function() {
 	
-	
+	//=================================constructors===================================
+	/**
+	 * The EngineCore allows you to handle a given xml scenario. 
+	 * Given some events it can run it. 
+	 * @class EngineCore
+	 * @constructor
+	 **/
+	var EngineCore = function() {
+		this._initialize();
+	}
 		/**
-		 * The EngineCore allows you to .... 
-		 * @class EngineCore
-		 * @constructor
-		 **/
-		var EngineCore = function(xml) {
-		  this.initialize(xml);
-		}
+	 * The EngineCore allows you to handle a given xml scenario. 
+	 * Given some events it can run it. 
+	 * @class EngineCore
+	 * @param {String} scenario xml string
+	 * @constructor
+	 **/
+	var EngineCore = function(xml) {
+		this._initialize(xml);
+	}
 	var p = EngineCore.prototype;
-	//static public properties:
+	//================================public static properties=========================
 	
 	/**
-	 * An identity matrix, representing a null transformation. Read-only.
+	 * The current Scenario of the game (see prototyoe http://...).
 	 * @property xmlString
 	 * @static
 	 * @type engineCore
-	 **/
-	EngineCore.xmlString = "";
-	//constructor:
+	**/
+	EngineCore.Version = "v001a2";
+	
+	//================================public properties================================
+	
 	/**
-	 * Initialization method.
-	 * @method initialize
-	 * @protected
-	 * @return {engineCore} This game engine.
-	*/
-	p.initialize = function(xml) {
+	 * The current Scenario of the game (see prototyoe http://...).
+	 * @property xmlString
+	 * @static
+	 * @type engineCore
+	**/
+	p.xmlString;
+	
+	//=============================public static methods===============================
+	/**
+	 * Converts a jquery xml object to xml string
+	 * @method xmlToString
+	 * @return current state
+	 **/
+	EngineCore.jqueryToString = function (xmlData)
+	{
+    var xmlString = "";
+		if (window.ActiveXObject){ 
+			xmlString = xmlData.xml; 
+		  } else {
+			var oSerializer = new XMLSerializer(); 
+			for(var i=0;i<xmlData.length;i++)
+			{
+			xmlString += oSerializer.serializeToString(xmlData[i]);
+		}
+		  } 
+		return xmlString;
+	}
+	//=================================public methods=================================
+	/**
+	 * Pause/run the GameEngine
+	 * @method runPause
+	 * @return current state
+	 **/
+	p.runPause = function() {
+		p.isRunning = !p.isRunning;
+		if(p.isRunning)
+			this._runTest();
+		return p.isRunning ;
+	}
+	/**
+	 * Loads an scenario from xml string
+	 * @method loadXmlString
+	 **/
+	p.loadXmlString = function(xml)
+	{
 		this.xmlString = xml;
 	}
-	//public methods:
+	//==================General Functions====================
 	/**
-	 * Concatenates the specified matrix properties with this matrix. All parameters are required.
-	 * @method prepend
-	 * @param {Number} a
-	 * @return This game engine. Useful for chaining method calls.
+	 * .
+	 * @method executeCommand
+	 * @param {Number} 
+	 * @return 
 	 **/
-	p.run = function(a) {
-		return this._runTest();
-	}
-	
-	//=================================Initializing Functions========================================
-	 p._runTest = function()
-	{
-		
-		var xml = $($.parseXML(this.xmlString));
-		
-		
-		
-		parentThis = this;		
-		this.inventoryCombineItems(xml,"flashLightBroken","battery",function(interction){
-			$(interction).find("command").each(function(){
-				
-				
-				var messages=$(this).find("message");
-				var rand = randomGen(0,messages.length);
-				var msg = messages[rand-1];	
-				parentThis.executeCommand(xml,interction,$(this).attr("name"),$(this).attr("data"),$(msg).text())
-				
-			});
-		
-		});
-		this.inventoryGetItems(xml, function(xml,name){
-			$("#output").append(parentThis.getObjectImage(xml,name) + "<br />");
-		});
-	
-	
-	}
-	//=================================General Functions========================================
 	p.executeCommand = function (xml,sender,command,data,message)
 	{
 		console.log("command name:"+ command +" data: "+ data +" msg: "+ message);
@@ -87,12 +107,24 @@ this.advenGameEngine = this.advenGameEngine||{};
 			//objectChangeState(xml,data);
 		}
 	}
-	//=================================Inventory Functions========================================
+	//===============Inventory Functions=====================
+	/**
+	 * .
+	 * @method inventoryObjectAdd
+	 * @param {Number} 
+	 * @return 
+	 **/
 	p.inventoryObjectAdd = function (xml, name)
 	{
 		var item = $("<item name=\""+name+"\">");
 		$(xml).find("runtime inventory").prepend(item);
 	}
+	/**
+	 * .
+	 * @method inventoryObjectRemove
+	 * @param {Number} 
+	 * @return 
+	 **/
 	p.inventoryObjectRemove = function (xml, name)
 	{
 		$(xml).find("inventory > item[name='"+name+"']").each(function()
@@ -100,6 +132,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 					$(this).remove();
 				});
 	}
+	/**
+	 * .
+	 * @method inventoryCombineItems
+	 * @param {Number} 
+	 * @return 
+	 **/
 	p.inventoryCombineItems = function (xml, name1, name2, callback)
 	{
 		var result = false;
@@ -120,6 +158,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 			callback(foundItem);
 		return result;
 	}
+	/**
+	 * .
+	 * @method inventoryGetItems
+	 * @param {Number} 
+	 * @return 
+	 **/
 	p.inventoryGetItems = function (xml,callback)
 	{
 		 $(xml).find("inventory > item").each(function()
@@ -127,10 +171,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 				  callback(xml,$(this).attr("name"));
 			  });
 	}
-	//=================================Object Functions========================================
+	//===================Object Functions====================
+	/**
+	 * .
+	 * @method getObjectImage
+	 * @param {Number} 
+	 * @return 
+	 **/
 	p.getObjectImage = function (xml,name)
 	{
-		var xmltxt = xmlToString(xml);
+		var xmltxt = EngineCore.jqueryToString(xml);
 		var res;
 		$(xml).find("inventory > objects > item[name='"+name+"'] > image").each(function()
 			  {	
@@ -139,10 +189,56 @@ this.advenGameEngine = this.advenGameEngine||{};
 			  });
 		return res;
 	}
-
-	//=================================Auxiliary Functions========================================
+	//=================================private methods=================================
+	//================nitializing Functions==================
+	/**
+	 * General initialization method.
+	 * @method initialize
+	 * @protected
+	 * @return {engineCore} This game engine.
+	*/
+	p._initialize = function() {
+		return this;
+	}
+	/**
+	 * Initialization method. input an xml string (see prototyoe http://...)
+	 * @method initialize
+	 * @protected
+	 * @return {engineCore} This game engine.
+	*/
+	p._initialize = function(xmlString) {
+		this.loadXmlString(xmlString);
+		return this;
+	}
+	 p._runTest = function()
+	{
+		
+		var xml = $($.parseXML(this.xmlString));
+		
+		
+		
+		parentThis = this;		
+		this.inventoryCombineItems(xml,"flashLightBroken","battery",function(interction){
+			$(interction).find("command").each(function(){
+				
+				
+				var messages=$(this).find("message");
+				var rand = EngineCore._randomGen(0,messages.length);
+				var msg = messages[rand-1];	
+				parentThis.executeCommand(xml,interction,$(this).attr("name"),$(this).attr("data"),$(msg).text())
+				
+			});
+		
+		});
+		this.inventoryGetItems(xml, function(xml,name){
+			$("#output").append(parentThis.getObjectImage(xml,name) + "<br />");
+		});
 	
-	function randomGen (minimum, maximum)
+	
+	}
+	p.isRunning = false;
+	//=================Auxiliary Functions===================	
+	EngineCore._randomGen = function (minimum, maximum)
 	{
 	    var bool = true;
 	    while(bool) {
@@ -151,10 +247,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 	        else {bool = false;}}
 	    return number;
 	 }
-	function xmlFindConsoleLog(xml,srt)
+	EngineCore._xmlFindConsoleLog = function(xml,srt)
 	{
 		console.log(xmlToString($(xml).find(srt)));
 	}
+
 
 advenGameEngine.EngineCore = EngineCore;
 }());
