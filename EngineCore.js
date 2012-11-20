@@ -101,13 +101,13 @@ this.advenGameEngine = this.advenGameEngine||{};
 	/**
 	 * Executes A given command
 	 * @method executeCommand
-	 * @param {String} sender the sender
+	 * @param {String} target the target name
 	 * @param {String} command the the given command
 	 * @param {String} data the data
 	 * @param {String} message the message
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.executeCommand = function (sender,command,data,message)
+	p.executeCommand = function (target,command,data,message)
 	{
 		console.log("command name:"+ command +" data: "+ data +" msg: "+ message);
 		if(command=="inventoryAdd")
@@ -118,10 +118,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			this.inventoryObjectRemove(data);
 		}
-		if(command=="changeState")
+		if(command=="changeObjectState")
 		{
 			//TODO:Implementation missing
-			//objectChangeState(data);
+			//objectChangeState(target,data);
 		}
 		if(command=="conditionSet")
 		{
@@ -138,6 +138,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			
 		}
 		//TODO:Implementation missing
+		//callback(message)
 	}
 	//===============Inventory Functions=====================
 	/**
@@ -392,6 +393,32 @@ this.advenGameEngine = this.advenGameEngine||{};
 	*/
 	p._initialize = function() {
 		return this;
+	}
+	p._parseScene = function(jquery){
+		//TODO: MORE
+		var xml = $($.parseXML(this.xmlString));
+		var scenes = $(xml).find("runtime > scenes");
+		var parentThis = this;
+		$(jquery).find("scene").each(function()
+		{
+			var sname =  $(this).attr('name');
+			$(this).find("background > state[default=\"true\"]").each(function()
+			{		
+				//add 
+				var stateName=$(this).attr("name");
+				
+				parentThis._loadObject($(this));
+			});	  
+			$(this).find("object").each(function()
+			{		
+				parentThis._parseObject($(this),sname);
+			});	    
+		});
+		return res;
+	
+	}
+	p._parseObject= function(jquery,sceneName){
+		//TODO: MORE
 	}
 	/**
 	 * Initialization method. input an xml string (see prototyoe http://...)
