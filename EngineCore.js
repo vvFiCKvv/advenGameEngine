@@ -1,6 +1,10 @@
-//=================================NameSpace==========================================
+/**
+ * Adventure GameEngine.
+ * @namespace
+*/
 this.advenGameEngine = this.advenGameEngine||{};
 (function() {
+	
 	
 	//=================================constructors===================================
 	/**
@@ -22,6 +26,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 	var EngineCore = function(xml) {
 		this._initialize(xml);
 	}
+	
+	/**
+	@class description
+	*/
 	var p = EngineCore.prototype;
 	//================================public static properties=========================
 	
@@ -29,7 +37,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * The current Scenario of the game (see prototyoe http://...).
 	 * @property xmlString
 	 * @static
-	 * @type engineCore
+	 * @type string
 	**/
 	EngineCore.Version = "v001a2";
 	
@@ -39,7 +47,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * The current Scenario of the game (see prototyoe http://...).
 	 * @property xmlString
 	 * @static
-	 * @type engineCore
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @type string
 	**/
 	p.xmlString;
 	
@@ -47,6 +56,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	/**
 	 * Converts a jquery xml object to xml string
 	 * @method xmlToString
+	 * @param {Jquery} xmlData 
+	 * @memberOf advenGameEngine.EngineCore
 	 * @return current state
 	 **/
 	EngineCore.jqueryToString = function (xmlData)
@@ -68,6 +79,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * Pause/run the GameEngine
 	 * @method runPause
 	 * @return current state
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
 	p.runPause = function() {
 		p.isRunning = !p.isRunning;
@@ -78,6 +90,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	/**
 	 * Loads an scenario from xml string
 	 * @method loadXmlString
+	 * @param {Number} xml
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
 	p.loadXmlString = function(xml)
 	{
@@ -85,101 +99,280 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	//==================General Functions====================
 	/**
-	 * .
+	 * Executes A given command
 	 * @method executeCommand
-	 * @param {Number} 
-	 * @return 
+	 * @param {String} sender the sender
+	 * @param {String} command the the given command
+	 * @param {String} data the data
+	 * @param {String} message the message
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.executeCommand = function (xml,sender,command,data,message)
+	p.executeCommand = function (sender,command,data,message)
 	{
 		console.log("command name:"+ command +" data: "+ data +" msg: "+ message);
 		if(command=="inventoryAdd")
 		{
-			this.inventoryObjectAdd(xml,data);
+			this.inventoryObjectAdd(data);
 		}
 		if(command=="inventoryRemove")
 		{
-			this.inventoryObjectRemove(xml,data);
+			this.inventoryObjectRemove(data);
 		}
 		if(command=="changeState")
 		{
-			//TODO:
-			//objectChangeState(xml,data);
+			//TODO:Implementation missing
+			//objectChangeState(data);
 		}
+		if(command=="conditionSet")
+		{
+			var cname = $(data).attr("name");
+			var cstatus =  $(data).attr("status");
+			if(cstatus=="true")
+			{
+				this.conditionSet(cname,true);
+			}
+			else
+			{
+				this.conditionSet(cname,false);
+			}
+			
+		}
+		//TODO:Implementation missing
 	}
 	//===============Inventory Functions=====================
 	/**
-	 * .
+	 * Adds an item to the inventory
 	 * @method inventoryObjectAdd
-	 * @param {Number} 
-	 * @return 
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @param {String} name The name of the item to add.
 	 **/
-	p.inventoryObjectAdd = function (xml, name)
+	p.inventoryObjectAdd = function (name)
 	{
+		var xml = $($.parseXML(this.xmlString));	
 		var item = $("<item name=\""+name+"\">");
-		$(xml).find("runtime inventory").prepend(item);
+		$(xml).find("runtime > inventory > available").prepend(item);
+		this.xmlString = EngineCore.jqueryToString(xml);
 	}
 	/**
-	 * .
+	 * Deletes an item from the inventory
 	 * @method inventoryObjectRemove
-	 * @param {Number} 
-	 * @return 
+	 * @param {String} name The name of the item to delete.
+	 * @return true if succeed otherwise false
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.inventoryObjectRemove = function (xml, name)
+	p.inventoryObjectRemove = function (name)
 	{
-		$(xml).find("inventory > item[name='"+name+"']").each(function()
+		var status = false;
+		var xml = $($.parseXML(this.xmlString));
+		$(xml).find(" runtime > inventory > available > item[name='"+name+"']").each(function()
 				{	 
 					$(this).remove();
+					status=true;
 				});
+		this.xmlString = EngineCore.jqueryToString(xml);
+		this.inventoryObjectDeselect(name);
+		return status;
+	}
+	/**
+	 * Adds an item to the inventory
+	 * @method inventoryObjectAdd
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @param {String} name The name of the item to add.
+	 **/
+	p.inventoryObjectSelect = function (name)
+	{
+		var xml = $($.parseXML(this.xmlString));
+		
+		var item = $("<item name=\""+name+"\">");
+		$(xml).find("runtime > inventory > selected").prepend(item);
+		this.xmlString = EngineCore.jqueryToString(xml);
+	}
+	/**
+	 * Deletes an item from the inventory
+	 * @method inventoryObjectRemove
+	 * @param {String} name The name of the item to delete.
+	 * @return true if succeed otherwise false
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.inventoryObjectDeselect = function (name)
+	{
+		var status = false;
+		var xml = $($.parseXML(this.xmlString));
+		$(xml).find(" runtime > inventory > selected > item[name='"+name+"']").each(function()
+				{	 
+					$(this).remove();
+					status=true;
+				});
+		this.xmlString = EngineCore.jqueryToString(xml);
+		return status;
+	}
+	/**
+	 * Checks if an given item is selected
+	 * @method inventoryIsItemSelected
+	 * @param {String} name The name of item to check.
+	 * @return true if given item is selected, otherwise false
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.inventoryIsItemSelected = function(name)
+	{
+		var contition = false;
+		var xml = $($.parseXML(this.xmlString));
+		$(xml).find("runtime > inventory > selected >  item[name='"+name+"']").each(function()
+		{
+			contition = true;
+		});
+		return contition;
 	}
 	/**
 	 * .
 	 * @method inventoryCombineItems
-	 * @param {Number} 
+	 * @param {String} name1 
+	 * @param {String} name2 
+	 * @param {Function} callback
 	 * @return 
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.inventoryCombineItems = function (xml, name1, name2, callback)
+	p.inventoryCombineItems = function ()
 	{
+		var xml = $($.parseXML(this.xmlString));
 		var result = false;
 		var foundItem=null;
-		$(xml).find("inventory > objects > interaction").each(function()
+		var xml1str = EngineCore.jqueryToString(xml);
+		var parentThis = this;
+		$(xml).find("inventory > objects > action[event='onInteract']").each(function()
 				{
-					var item1 = $(this).find("item[name='"+name1+"']");
-					var item2 = $(this).find("item[name='"+name2+"']");
-					if(item1.length  && item2.length )
+					var contitions = false;
+					$(this).find("requires > item").each(function()
+					{
+						if(parentThis.inventoryIsItemSelected($(this).attr("name")))
 						{
-							//TODO:missing condition check
+							contitions =true;
+						}else
+						{
+							contitions = false;
+							return;
+						}
+					});
+					if(contitions==false)
+						return;
+					$(this).find("requires > condition").each(function()
+					{
+						if(!parentThis.conditionCheck($(this).attr("name")))
+						{
+							contitions =false;
+							return;
+						}
+					});
+					if(contitions)
+						{
 							foundItem = $(this);
 							result = true;
 							return;
 						}
 				});
-		if(foundItem)
-			callback(foundItem);
+		var parentThis = this;
+		if(foundItem)	//execute commands
+		{
+			$(foundItem).find("command").each(function(){	
+				var messages=$(this).find("message"); //choose a random message 
+				var rand = EngineCore._randomGen(0,messages.length);
+				var cmsg = messages[rand-1];	
+				var cname=$(this).attr("name");
+				var cdata=$(this).attr("data");
+				if(cdata==null)
+				{
+					cdata = EngineCore.jqueryToString($(this).children());
+				}
+				
+				parentThis.executeCommand(foundItem,cname,cdata,$(cmsg).text());
+				
+			});
+		}
 		return result;
+	}
+	//==============conditions Functions=====================
+	/**
+	 * Checks if a given condition is satisfied
+	 * @method inventoryIsItemSelected
+	 * @param {String} name The condition name.
+	 * @return true if given condition is satisfied, otherwise false
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.conditionCheck = function(name)
+	{
+		var contition = false;
+		var xml = $($.parseXML(this.xmlString));
+		 $(xml).find("runtime > conditions > condition[name='"+name+"']").each(function()
+			  {	 
+				  if($(this).attr("status")=="true")
+				  {
+					  contition = true;
+					  return;
+				  }
+			  });
+		return contition;
+	}
+	/**
+	 * Set the status of a given condition.
+	 * @method inventoryIsItemSelected
+	 * @param {String} name The condition name.
+	 * @param {Boolean} name The condition status.
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.conditionSet = function(name,status)
+	{
+		var contitionExist = false;
+		var xml = $($.parseXML(this.xmlString));
+		 $(xml).find("runtime > conditions > condition[name='"+name+"']").each(function()
+			  {	 
+				  contitionExist = true;
+				  $(this).attr("status", status.toString());
+			  });
+		if(!contitionExist)
+		{
+			var item = $("<condition name=\""+name+"\" status=\""+status.toString()+"\">");
+			$(xml).find("runtime > conditions").prepend(item);	
+		}
+		this.xmlString = EngineCore.jqueryToString(xml);
+	}
+	/**
+	 * .
+	 * @method eventOccurred
+	 * @param {Function} callback
+	 * @return 
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.eventOccurred = function(sender,type,event, data)
+	{
+		//TODO:Implementation missing
+		return;
 	}
 	/**
 	 * .
 	 * @method inventoryGetItems
-	 * @param {Number} 
+	 * @param {Function} callback
 	 * @return 
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.inventoryGetItems = function (xml,callback)
+	p.inventoryGetItems = function (callback)
 	{
-		 $(xml).find("inventory > item").each(function()
+		var xml = $($.parseXML(this.xmlString));
+		 $(xml).find("runtime > inventory > available > item").each(function()
 			  {	 
-				  callback(xml,$(this).attr("name"));
+				  callback($(this).attr("name"));
 			  });
 	}
 	//===================Object Functions====================
 	/**
 	 * .
 	 * @method getObjectImage
-	 * @param {Number} 
+	 * @param {String} name
 	 * @return 
+	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.getObjectImage = function (xml,name)
+	p.getObjectImage = function (name)
 	{
+		var xml = $($.parseXML(this.xmlString));
 		var xmltxt = EngineCore.jqueryToString(xml);
 		var res;
 		$(xml).find("inventory > objects > item[name='"+name+"'] > image").each(function()
@@ -212,30 +405,29 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	 p._runTest = function()
 	{
-		
+
 		var xml = $($.parseXML(this.xmlString));
 		
-		
-		
 		parentThis = this;		
-		this.inventoryCombineItems(xml,"flashLightBroken","battery",function(interction){
-			$(interction).find("command").each(function(){
-				
-				
-				var messages=$(this).find("message");
-				var rand = EngineCore._randomGen(0,messages.length);
-				var msg = messages[rand-1];	
-				parentThis.executeCommand(xml,interction,$(this).attr("name"),$(this).attr("data"),$(msg).text())
-				
-			});
+		this.inventoryObjectAdd("flashLightBroken");
+		this.inventoryObjectAdd("battery");
+		this.inventoryObjectAdd("screwDriver");
+		this.inventoryObjectSelect("flashLightBroken");
+		this.inventoryObjectSelect("battery");
+		//this.inventoryObjectDeselect("battery");
+		this.conditionSet("condition_darkRoom",true);
+		this.inventoryCombineItems();
 		
+
+		
+		this.inventoryGetItems(function(name){
+			$("#output").append(parentThis.getObjectImage(name) + "<br />");
 		});
-		this.inventoryGetItems(xml, function(xml,name){
-			$("#output").append(parentThis.getObjectImage(xml,name) + "<br />");
-		});
-	
+		var xml = $($.parseXML(this.xmlString));
+		EngineCore._xmlFindConsoleLog(xml,"runtime");
 	
 	}
+	//TODO:Implementation missing
 	p.isRunning = false;
 	//=================Auxiliary Functions===================	
 	EngineCore._randomGen = function (minimum, maximum)
@@ -249,10 +441,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 }
 	EngineCore._xmlFindConsoleLog = function(xml,srt)
 	{
-		console.log(xmlToString($(xml).find(srt)));
+		console.log(EngineCore.jqueryToString($(xml).find(srt)));
 	}
 
-
+/** @namespace */
 advenGameEngine.EngineCore = EngineCore;
 }());
 

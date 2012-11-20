@@ -31,7 +31,7 @@
 						<state name="openedFirstTime">
 							<image url="sirtati_01_openFirstTime.jpg"></image>
 							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->
-							<action event="onStateLoad">	
+							<action event="onLoad">	
 								<command name="play" data="video1_01">
 									<message>well done!</message>
 								</command>							
@@ -70,7 +70,7 @@
 							</action>
 							<action event="onClick">
 								<requires><item>key</item></requires>
-								<command name="codecheck">
+								<command name="codeCheck">
 									<data><codecheck condition="condition_passwd" password="1243"></codecheck></data>
 									<message>the code is common, can you guess?</message>
 									<message>the code is numeric 4 characters and start with 1</message>
@@ -94,23 +94,44 @@
 		<objects>
 			<!-- an item may be disassembly to a set of items -->
 			<item name="flashLight">
-			   <image url="flashLight.jpg"></image>
-			   <detailImage>flashLightHidenMessage.jpg</detailImage>
-			   <message>it works!</message>
+				<image url="flashLight.jpg"></image>
+				<action event="onFocus">
+					<command>
+						<message>it works!</message>
+					</command>
+				</action>
+				<action event="onClick">
+					<command name="popuupImage" data="flashLightHidenMessage.jpg">
+						<message>Wow it has a hiden message!</message>
+					</command>
+				</action>
 			</item>
 			<item name="flashLightBroken">
 			   <image url="flashLightBroken.jpg"></image>
-			   <message>its broken, i can fix it with a battery!</message>
+			   <action event="onFocus">
+					<command>
+						<message>its broken, i can fix it with a battery!</message>
+					</command>
+				</action>
 			</item>
 			<item name="battery">
 			   <image url="battery.jpg"></image>
-			   <message>a battery,?i wanter where i can use it!</message>
+			   <action event="onFocus">
+					<command>
+						<message>a battery,?i wanter where i can use it!</message>
+					</command>
+				</action>
 			</item>
 			<item name="screwDriver">
 			   <image url="screwDriver.jpg"></image>
-			   <message>its a screw driver!</message>
+			   <action event="onFocus">
+					<command>
+						<message>its a screw driver!</message>
+					</command>
+				</action>
+			   <message></message>
 			</item>
-			<interaction>
+			<action event="onInteract">
 				<requires>
 					<item name="flashLightBroken"></item>
 					<item name="battery"></item>
@@ -121,8 +142,9 @@
 							<message>yeah!</message>
 					</command>
 					<command name="inventoryRemove" data="flashLightBroken"></command>
-					<command name="inventoryRemove" data="battery"></command>	
-			</interaction>
+					<command name="inventoryRemove" data="battery"></command>
+					<command name="conditionSet"><data name="conditionTransformComplete" status="true"></data></command>
+			</action>
 		</objects>
 	</inventory>
 	<!-- A set of videos that may be shown after an action -->
@@ -132,9 +154,12 @@
 	<!-- Contains Runtime Environment Structures. This part will change dynamic during runtime-->
 	<runtime>
 		<!-- items of inventory -->
-		<inventory><item name="flashLightBroken"></item><item name="battery"></item><item name="screwDriver"></item></inventory>
+		<inventory>
+			<available></available>
+			<selected></selected>
+		</inventory>
 		<!--A general set of conditions(flags) and status(value) of them -->
-		<conditions><condition name="ontition_passwd" status="false"></condition></conditions>
+		<conditions></conditions>
 		<!-- The current scene  -->
 		<scene></scene>
 		<!-- Objects variables -->

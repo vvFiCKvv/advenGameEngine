@@ -1,4 +1,7 @@
-
+/**
+ * @fileOverview A collection of functions
+ * @name util
+ */
 //When document is loaded. this may occurred before all httpRequests finished
 $(document).ready(function(){	
 	init();
