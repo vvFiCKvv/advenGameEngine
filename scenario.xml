@@ -119,7 +119,7 @@
 								</command>
 							</action>
 							<action event="onClick">
-								<requires><item name="key"></item></item></requires>
+								<requires><item name="key"></item></requires>
 								<command name="codeCheck">
 									<data><codecheck condition="condition_passwd" password="1243"></codecheck></data>
 									<message>the code is common, can you guess?</message>
@@ -210,11 +210,9 @@
 		<conditions></conditions>
 		<!-- The current scene  -->
 		<scenes>
-			<scene name="Room_01_wall01" backgroundState="lowLight"></scene>
 		</scenes>
 		<!-- Objects variables -->
 		<objects>
-			<object name="sirtati_01" state="closed" visibility="true" owner="Room_01_wall01"></object>
 		</objects>
 	</runtime>
 </game>

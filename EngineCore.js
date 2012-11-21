@@ -395,30 +395,36 @@ this.advenGameEngine = this.advenGameEngine||{};
 		return this;
 	}
 	p._parseScene = function(jquery){
-		//TODO: MORE
 		var xml = $($.parseXML(this.xmlString));
-		var scenes = $(xml).find("runtime > scenes");
 		var parentThis = this;
 		$(jquery).find("scene").each(function()
 		{
-			var sname =  $(this).attr('name');
+			var sceneName =  $(this).attr('name');
 			$(this).find("background > state[default=\"true\"]").each(function()
 			{		
 				//add 
 				var stateName=$(this).attr("name");
-				
-				parentThis._loadObject($(this));
+				var toAddString="<scene name=\""+sceneName+"\" backgroundState=\""+stateName+"\"/>";
+				$(xml).find("runtime > scenes").prepend($(toAddString));			
 			});	  
-			$(this).find("object").each(function()
+			$(this).find("objects > object").each(function()
 			{		
-				parentThis._parseObject($(this),sname);
+				parentThis._parseObject($(this),sceneName);
 			});	    
 		});
-		return res;
-	
 	}
 	p._parseObject= function(jquery,sceneName){
-		//TODO: MORE
+		var xml = $($.parseXML(this.xmlString));
+		var parentThis = this;
+		var objectName = $(jquery).attr("name");
+		$(jquery).find("state[default=\"true\"]").each(function()
+		{		
+			//add 
+			var stateName=$(this).attr("name");
+			var toAddString="<object name=\""+objectName+"\" state=\""+stateName+"\" visibility=\"true\" owner=\""+sceneName+"\"/>";
+			$(xml).find("runtime > objects").prepend($(toAddString));				
+		});
+			      
 	}
 	/**
 	 * Initialization method. input an xml string (see prototyoe http://...)
@@ -434,6 +440,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	{
 
 		var xml = $($.parseXML(this.xmlString));
+	
+		this._parseScene($(xml).find("game > scenes"));
 		
 		parentThis = this;		
 		this.inventoryObjectAdd("flashLightBroken");
