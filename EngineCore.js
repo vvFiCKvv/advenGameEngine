@@ -109,21 +109,37 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.executeCommand = function (target,command,data,message)
 	{
+/*TODO: create new event when changing scene/object states.
+		 *  this will go to the below functions but first we need to stabilize
+		 *  the arguments of this and the parse event function*/  
 		console.log("command name:"+ command +" data: "+ data +" msg: "+ message);
 		if(command=="inventoryAdd")
 		{
 			this.inventoryObjectAdd(data);
 		}
-		if(command=="inventoryRemove")
+		else if(command=="inventoryRemove")
 		{
 			this.inventoryObjectRemove(data);
 		}
-		if(command=="changeObjectState")
+		else if(command=="changeObjectState")
 		{
-			//TODO:Implementation missing
-			//objectChangeState(target,data);
+//TODO:must change target equals 'this' to correct one before call executeCommand 
+			this.objectChangeState(target,data);
 		}
-		if(command=="conditionSet")
+		else if(command=="changeScene")
+		{
+			this.gameChangeScene(data);
+		}else if(command=="changeBackgroundState")
+		{
+			this.sceneChangeState(data);
+		}
+		else if(command=="changeObjectVisibility")
+		{
+//TODO:must change target equals 'all' to correct one before call executeCommand 
+//if target equal all for each object of a scene
+			this.objectChangeVisibility(target,data);
+		}
+		else if(command=="conditionSet")
 		{
 			var cname = $(data).attr("name");
 			var cstatus =  $(data).attr("status");
@@ -137,8 +153,58 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			
 		}
-		//TODO:Implementation missing
+//TODO:Add xml prototype for variables
 		//callback(message)
+	}
+
+	/**
+	 * Loads a given jquery scene into the game xml.
+	 * @method parseScene
+	 * @param {Jquery} jqueryScene a given jquery representing a scene of the game.
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.parseScene = function(jqueryScene){
+		var xml =  this.gameXml;
+		var parentThis = this;
+		$(jqueryScene).find("scene").each(function()
+		{
+			var sceneName =  $(this).attr('name');
+			if($(this).attr("default")=="true")
+			{
+				parentThis.gameChangeScene(sceneName);
+			}
+			$(this).find("background > state[default=\"true\"]").each(function()
+			{		
+				//add 
+				var stateName=$(this).attr("name");
+				var toAddString="<scene name=\""+sceneName+"\" backgroundState=\""+stateName+"\"/>";
+				$(xml).find("runtime > scenes").prepend($(toAddString));			
+			});	  
+			$(this).find("objects > object").each(function()
+			{		
+				parentThis.parseObject($(this),sceneName);
+			});	    
+		});
+	}
+	/**
+	 * Loads a given jquery object into in the game xml. And assign it to a given scene
+	 * @method parseScene
+	 * @param {Jquery} jqueryObject a given jquery representing a scene of the game.
+	 * @param {String} sceneName a given name of a scene to assign the object.
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.parseObject= function(jqueryObject,sceneName){
+		var xml =  this.gameXml;
+		var parentThis = this;
+		var objectName = $(jqueryObject).attr("name");
+		$(jqueryObject).find("state[default=\"true\"]").each(function()
+		{		
+			//add 
+			var stateName=$(this).attr("name");
+			var toAddString="<object name=\""+objectName+"\" state=\""+stateName+"\" visibility=\"true\" owner=\""+sceneName+"\"/>";
+			$(xml).find("runtime > objects").prepend($(toAddString));				
+		});
+			      
 	}
 	//===============Inventory Functions=====================
 	/**
@@ -338,7 +404,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.eventOccurred = function(sender,type,event, data)
 	{
-		//TODO:Implementation missing
+//TODO:Implementation missing
 		return;
 	}
 	/**
@@ -375,6 +441,50 @@ this.advenGameEngine = this.advenGameEngine||{};
 			  });
 		return res;
 	}
+	/**
+	 * Change the state of a given object
+	 * @method getObjectImage
+	 * @param {String} target The name of given object.
+	 * @param {String} target The name of new state.
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.objectChangeState = function(target,state)
+	{
+		$(this.gameXml).find("runtime > objects > object[name=\""+target+"\"]").attr("state",state);
+	}
+	/**
+	 * Change the visibility status of a given object
+	 * @method getObjectImage
+	 * @param {String} target The name of given object.
+	 * @param {String} target The name of new status.
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.objectChangeVisibility = function(target,status)
+	{
+		$(this.gameXml).find("runtime > objects > object[name=\""+target+"\"]").attr("visibility",status);
+	}
+	//===================Scene Functions====================
+	/**
+	 * Change the state of a given scene
+	 * @method getObjectImage
+	 * @param {String} target The name of given scene.
+	 * @param {String} target The name of new state. 
+	 * @memberOf advenGameEngine.EngineCore#
+	**/
+	p.sceneChangeState= function(target,state)
+	{
+		$(this.gameXml).find("runtime > scenes > scene[name=\""+target+"\"]").attr("state",state);
+	}
+	/**
+	 * Change the scene of the game
+	 * @method getObjectImage
+	 * @param {String} scene The name of scene to load.
+	 * @memberOf advenGameEngine.EngineCore#
+	**/
+	p.gameChangeScene = function (scene)
+	{
+		$(this.gameXml).find("runtime > scenes").attr("active",scene);
+	}
 	//=================================private methods=================================
 	//================nitializing Functions==================
 	/**
@@ -382,41 +492,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * @method initialize
 	 * @protected
 	 * @return {engineCore} This game engine.
-	*/
+	**/
 	p._initialize = function() {
 		return this;
-	}
-	p._parseScene = function(jquery){
-		var xml =  this.gameXml;
-		var parentThis = this;
-		$(jquery).find("scene").each(function()
-		{
-			var sceneName =  $(this).attr('name');
-			$(this).find("background > state[default=\"true\"]").each(function()
-			{		
-				//add 
-				var stateName=$(this).attr("name");
-				var toAddString="<scene name=\""+sceneName+"\" backgroundState=\""+stateName+"\"/>";
-				$(xml).find("runtime > scenes").prepend($(toAddString));			
-			});	  
-			$(this).find("objects > object").each(function()
-			{		
-				parentThis._parseObject($(this),sceneName);
-			});	    
-		});
-	}
-	p._parseObject= function(jquery,sceneName){
-		var xml =  this.gameXml;
-		var parentThis = this;
-		var objectName = $(jquery).attr("name");
-		$(jquery).find("state[default=\"true\"]").each(function()
-		{		
-			//add 
-			var stateName=$(this).attr("name");
-			var toAddString="<object name=\""+objectName+"\" state=\""+stateName+"\" visibility=\"true\" owner=\""+sceneName+"\"/>";
-			$(xml).find("runtime > objects").prepend($(toAddString));				
-		});
-			      
 	}
 	/**
 	 * Initialization method. input an xml string (see prototyoe http://...)
@@ -426,15 +504,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 	*/
 	p._initialize = function(xmlString) {
 		this.loadXmlString(xmlString);
+		this.parseScene($(this.gameXml).find("game > scenes"));
 		return this;
 	}
 	 p._runTest = function()
 	{
 
 		var xml = this.gameXml;
-		this._parseScene($(xml).find("game > scenes"));
-		
-		parentThis = this;		
+		//prints runtime in console!
+		EngineCore._xmlFindConsoleLog(xml,"runtime");
+					
 		this.inventoryObjectAdd("flashLightBroken");
 		this.inventoryObjectAdd("battery");
 		this.inventoryObjectAdd("screwDriver");
@@ -444,18 +523,24 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.conditionSet("condition_darkRoom",true);
 		this.inventoryCombineItems();
 		
-
+		this.executeCommand("sirtati_01","changeObjectState","opened","changing state...")
 		
+		this.objectChangeVisibility("sirtati_01","false");
+		//prints runtime in console!
+		EngineCore._xmlFindConsoleLog(xml,"runtime");
+		
+		//prints image url for each inventory items.
+		parentThis = this;	
 		this.inventoryGetItems(function(name){
 			$("#output").append(parentThis.getObjectImage(name) + "<br />");
 		});
-		EngineCore._xmlFindConsoleLog(xml,"runtime");
+		
 		
 		
 		
 	
 	}
-	//TODO:Implementation missing
+//TODO:Implementation missing
 	p.isRunning = false;
 	//=================Auxiliary Functions===================	
 	EngineCore._randomGen = function (minimum, maximum)

@@ -199,19 +199,24 @@
 	<videos>
 		<video name="video_01" url="intro.mpg"></video>
 	</videos>
-	<!-- Contains Runtime Environment Structures. This part will change dynamic during runtime-->
+	
+	<!--=========================PLEASE DO NOT EDIT THE FOLLOWING CODE========================-->	
+	<!-- Contains Run-time Environment Structures. 
+		 This part will automatically changed dynamically during the game run-time
+	-->
+	<!--=========================PLEASE DO NOT EDIT THE FOLLOWING CODE========================-->
 	<runtime>
-		<!-- items of inventory -->
+		<!--Contains the available and selected items of inventory -->
 		<inventory>
 			<available></available>
 			<selected></selected>
 		</inventory>
 		<!--A general set of conditions(flags) and status(value) of them -->
 		<conditions></conditions>
-		<!-- The current scene  -->
+		<!-- Scenes status  -->
 		<scenes>
 		</scenes>
-		<!-- Objects variables -->
+		<!-- Objects status -->
 		<objects>
 		</objects>
 	</runtime>
