@@ -45,12 +45,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 	
 	/**
 	 * The current Scenario of the game (see prototyoe http://...).
-	 * @property xmlString
+	 * @property gameXml
 	 * @static
 	 * @memberOf advenGameEngine.EngineCore#
-	 * @type string
+	 * @type jquery
 	**/
-	p.xmlString;
+	p.gameXml;
 	
 	//=============================public static methods===============================
 	/**
@@ -95,7 +95,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.loadXmlString = function(xml)
 	{
-		this.xmlString = xml;
+		this.gameXml = $.parseXML(xml);
 	}
 	//==================General Functions====================
 	/**
@@ -149,10 +149,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.inventoryObjectAdd = function (name)
 	{
-		var xml = $($.parseXML(this.xmlString));	
+		var xml = this.gameXml;
 		var item = $("<item name=\""+name+"\">");
 		$(xml).find("runtime > inventory > available").prepend(item);
-		this.xmlString = EngineCore.jqueryToString(xml);
 	}
 	/**
 	 * Deletes an item from the inventory
@@ -164,13 +163,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.inventoryObjectRemove = function (name)
 	{
 		var status = false;
-		var xml = $($.parseXML(this.xmlString));
+		var xml =  this.gameXml;
 		$(xml).find(" runtime > inventory > available > item[name='"+name+"']").each(function()
 				{	 
 					$(this).remove();
 					status=true;
 				});
-		this.xmlString = EngineCore.jqueryToString(xml);
 		this.inventoryObjectDeselect(name);
 		return status;
 	}
@@ -182,11 +180,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.inventoryObjectSelect = function (name)
 	{
-		var xml = $($.parseXML(this.xmlString));
-		
+		var xml =  this.gameXml;
 		var item = $("<item name=\""+name+"\">");
 		$(xml).find("runtime > inventory > selected").prepend(item);
-		this.xmlString = EngineCore.jqueryToString(xml);
 	}
 	/**
 	 * Deletes an item from the inventory
@@ -198,13 +194,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.inventoryObjectDeselect = function (name)
 	{
 		var status = false;
-		var xml = $($.parseXML(this.xmlString));
+		var xml = this.gameXml;
 		$(xml).find(" runtime > inventory > selected > item[name='"+name+"']").each(function()
 				{	 
 					$(this).remove();
 					status=true;
 				});
-		this.xmlString = EngineCore.jqueryToString(xml);
 		return status;
 	}
 	/**
@@ -217,7 +212,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.inventoryIsItemSelected = function(name)
 	{
 		var contition = false;
-		var xml = $($.parseXML(this.xmlString));
+		var xml = this.gameXml;
 		$(xml).find("runtime > inventory > selected >  item[name='"+name+"']").each(function()
 		{
 			contition = true;
@@ -235,10 +230,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.inventoryCombineItems = function ()
 	{
-		var xml = $($.parseXML(this.xmlString));
+		var xml =  this.gameXml;
 		var result = false;
 		var foundItem=null;
-		var xml1str = EngineCore.jqueryToString(xml);
 		var parentThis = this;
 		$(xml).find("inventory > objects > action[event='onInteract']").each(function()
 				{
@@ -302,7 +296,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.conditionCheck = function(name)
 	{
 		var contition = false;
-		var xml = $($.parseXML(this.xmlString));
+		var xml =  this.gameXml;
 		 $(xml).find("runtime > conditions > condition[name='"+name+"']").each(function()
 			  {	 
 				  if($(this).attr("status")=="true")
@@ -323,7 +317,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.conditionSet = function(name,status)
 	{
 		var contitionExist = false;
-		var xml = $($.parseXML(this.xmlString));
+		var xml =  this.gameXml;
 		 $(xml).find("runtime > conditions > condition[name='"+name+"']").each(function()
 			  {	 
 				  contitionExist = true;
@@ -334,7 +328,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 			var item = $("<condition name=\""+name+"\" status=\""+status.toString()+"\">");
 			$(xml).find("runtime > conditions").prepend(item);	
 		}
-		this.xmlString = EngineCore.jqueryToString(xml);
 	}
 	/**
 	 * .
@@ -357,7 +350,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.inventoryGetItems = function (callback)
 	{
-		var xml = $($.parseXML(this.xmlString));
+		var xml = this.gameXml;
 		 $(xml).find("runtime > inventory > available > item").each(function()
 			  {	 
 				  callback($(this).attr("name"));
@@ -373,8 +366,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.getObjectImage = function (name)
 	{
-		var xml = $($.parseXML(this.xmlString));
-		var xmltxt = EngineCore.jqueryToString(xml);
+		var xml = this.gameXml;
 		var res;
 		$(xml).find("inventory > objects > item[name='"+name+"'] > image").each(function()
 			  {	
@@ -395,7 +387,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		return this;
 	}
 	p._parseScene = function(jquery){
-		var xml = $($.parseXML(this.xmlString));
+		var xml =  this.gameXml;
 		var parentThis = this;
 		$(jquery).find("scene").each(function()
 		{
@@ -414,7 +406,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		});
 	}
 	p._parseObject= function(jquery,sceneName){
-		var xml = $($.parseXML(this.xmlString));
+		var xml =  this.gameXml;
 		var parentThis = this;
 		var objectName = $(jquery).attr("name");
 		$(jquery).find("state[default=\"true\"]").each(function()
@@ -439,8 +431,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 p._runTest = function()
 	{
 
-		var xml = $($.parseXML(this.xmlString));
-	
+		var xml = this.gameXml;
 		this._parseScene($(xml).find("game > scenes"));
 		
 		parentThis = this;		
@@ -458,8 +449,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventoryGetItems(function(name){
 			$("#output").append(parentThis.getObjectImage(name) + "<br />");
 		});
-		var xml = $($.parseXML(this.xmlString));
 		EngineCore._xmlFindConsoleLog(xml,"runtime");
+		
+		
+		
 	
 	}
 	//TODO:Implementation missing
@@ -476,7 +469,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 }
 	EngineCore._xmlFindConsoleLog = function(xml,srt)
 	{
-		console.log(EngineCore.jqueryToString($(xml).find(srt)));
+		res = $(xml).find(srt);
+		console.log(EngineCore.jqueryToString(res));
 	}
 
 /** @namespace */
