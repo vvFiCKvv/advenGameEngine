@@ -27,42 +27,44 @@
 		<scene name="Room_01_wall01" default="true">
 			<!--Possible way outs to another scene or ... -->
 			<background>
-				<state name="lowLight" default="true">
-					<image url="Room_01_wall01_Low_Light.jpg"></image>
-					<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
-					<pathway name="west">
-						<action event="onClick">
-							<command name="changeScene" data="Room_01_wall02">
-								<message>going west</message>
+				<states>
+					<state name="lowLight" default="true">
+						<image url="Room_01_wall01_Low_Light.jpg"></image>
+						<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
+						<pathway name="west">
+							<action event="onClick">
+								<command name="changeScene" data="Room_01_wall02">
+									<message>going west</message>
+								</command>								
+							</action>
+						</pathway>
+						<action event="onLoad">
+							<command name="changeObjectVisibility" target="all" data="false">
+								<message>Its too dark too see anything!</message>
 							</command>								
 						</action>
-					</pathway>
-					<action event="onLoad">
-						<command name="changeObjectVisibility" target="all" data="false">
-							<message>Its too dark too see anything!</message>
-						</command>								
-					</action>
-					<action event="onClick">
-						<requires><item name="flashLight"></item></requires>						
-						<command name="changeBackgroundState" target="this" data="fullLight">
-							<message>Opening Lights</message>
-						</command>								
-					</action>
-				</state>
-				<state name="fullLight">
-					<image url="Room_01_wall01_Full_Light.jpg"></image>
-					<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
-					<action event="onLoad">
-						<command name="changeObjectVisibility" target="all" data="true">
-							<message>Its too dark too see anything!</message>
-						</command>								
-					</action>
-					<action event="onClick">
-						<command>
-							<message>Nothing Important Here!</message>
-						</command>								
-					</action>
-				</state>
+						<action event="onClick">
+							<requires><item name="flashLight"></item></requires>						
+							<command name="changeBackgroundState" target="this" data="fullLight">
+								<message>Opening Lights</message>
+							</command>								
+						</action>
+					</state>
+					<state name="fullLight">
+						<image url="Room_01_wall01_Full_Light.jpg"></image>
+						<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
+						<action event="onLoad">
+							<command name="changeObjectVisibility" target="all" data="true">
+								<message>Its too dark too see anything!</message>
+							</command>								
+						</action>
+						<action event="onClick">
+							<command>
+								<message>Nothing Important Here!</message>
+							</command>								
+						</action>
+					</state>
+				</states>
 			</background>
 			<!-- Possible objects(each object may have some actions ) -->
 			<objects>
@@ -95,13 +97,22 @@
 						</state>
 						<state name="semiOpen">
 							<image url="sirtati_01_semiOpen.jpg"></image>
+							<action event="onLoad">
+								<requires>
+									<condition name="condition_FirstTime" not="true"></condition>
+								</requires>
+								<command name="changeObjectState" target="this" data="opened">
+									<message>openning...2x and more</message>
+								</command>	
+							</action>
 							<action event="onClick">							
 								<requires>
 									<item name="screwDriver"></item>
 									<condition name="condition_FirstTime"></condition>
 								</requires>
+								<command name="conditionSet" target="this"><data name="condition_FirstTime" status="false"></data></command>
 								<command name="changeObjectState" target="this" data="openedFirstTime">
-									<message>opening</message>
+									<message>opening 1st time</message>
 								</command>								
 							</action>
 							<action event="onClick">
@@ -128,9 +139,13 @@
 								</command>							
 							</action>
 							<action event="onClick">
-								<requires><condition name="condition_passwd"></condition></requires>
-								<command name="changeObjectState" target="this" data="semiopened"><message>well done, its unlocked</message></command>	
-							</action>
+								<requires>
+									<condition name="condition_passwd"></condition>
+									<condition name="condition_FirstTime" not="true"></condition>
+								</requires>
+								<command name="conditionSet" target="this"><data name="condition_FirstTime" status="true"></data></command>	
+								<command name="changeObjectState" target="this" data="semiOpen"><message>well done, its unlocked</message></command>
+										</action>
 						</state>
 					</states>
 				</object>

@@ -124,7 +124,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		targetArray=target.split(",");
 		targetArray.forEach(function(entry) {
 			var targetNode = entry.split(".");
-			if(targetNode.Length==2)
+			if(targetNode.length==2)
 			{
 				sceneName=targetNode[0];
 				objectName=targetNode[1];
@@ -193,7 +193,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		$(jqueryScene).find("scene").each(function()
 		{
 			var sceneName =  $(this).attr('name');			
-			$(this).find("background > state[default=\"true\"]").each(function()
+			$(this).find("background > states > state[default=\"true\"]").each(function()
 			{		
 				//add 
 				var stateName=$(this).attr("name");
@@ -346,23 +346,23 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			xmlQuery="scenes > scene[name='"+sceneName+"']";
 			stateName = this.sceneGetState(sceneName);
-			xmlQuery+=" > background > state[name='"+stateName+"']";
+			xmlQuery+=" > background > states > state[name='"+stateName+"']";
 			xmlQuery+=" > pathway['"+data+"']"
 		}
 		else if(type=="background")
 		{
 			xmlQuery="scenes > scene[name='"+sceneName+"']";
 			stateName = this.sceneGetState(sceneName);
-			xmlQuery+=" > background > state[name='"+stateName+"']";
+			xmlQuery+=" > background > states > state[name='"+stateName+"']";
 
 		}
 		else if(type=="object")
 		{
 			objectName=data;
-			xmlQuery="scenes > scene[name='"+sceneName+"'";
+			xmlQuery="scenes > scene[name='"+sceneName+"']";
 			xmlQuery+=" > objects > object[name='"+objectName+"']";
 			stateName = this.objectGetState(sceneName,objectName);
-			xmlQuery+=" > state[name='"+stateName+"']";
+			xmlQuery+=" > states > state[name='"+stateName+"']";
 		}
 		else if(type=="inventory")
 		{
@@ -385,16 +385,13 @@ this.advenGameEngine = this.advenGameEngine||{};
 
 		$(this.gameXml).find(xmlQuery).each(function()
 				{
-					var contitions = false;
+					var contitions = true;
 					var stopSearching = false;
 					$(this).find("requires > item").each(function()
 					{
 						if(stopSearching==true)
 							return;
-						if(parentThis.inventoryIsItemSelected($(this).attr("name")))
-						{
-							contitions =true;
-						}else
+						if(!parentThis.inventoryIsItemSelected($(this).attr("name")))
 						{
 							contitions = false;
 							stopSearching=true;
@@ -405,9 +402,14 @@ this.advenGameEngine = this.advenGameEngine||{};
 						return;
 					$(this).find("requires > condition").each(function()
 					{
+						var reverse = false;
 						if(stopSearching==true)
 							return;
-						if(!parentThis.conditionCheck($(this).attr("name")))
+						if($(this).attr("not")=="true")
+						{
+							reverse = true;
+						}
+						if(parentThis.conditionCheck($(this).attr("name"))==reverse)
 						{
 							contitions =false;
 							stopSearching=true;
@@ -424,7 +426,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 								var commandTarget=$(this).attr("target");
 								if(commandTarget=="this"||commandTarget==null)
 								{
-									commandTarget+=sceneName;
+									commandTarget=sceneName;
 									if(objectName)
 									{
 										commandTarget+="."+objectName;
@@ -432,7 +434,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 								}
 								if(commandTarget=="all")
 								{
-									$(parentThis.gameXml).find("runtime > objects > object[owned='"+sceneName+"']")
+									$(parentThis.gameXml).find("runtime > objects > object[owner='"+sceneName+"']")
 									{
 										commandTarget+=sceneName;
 										commandTarget+="."+$(this).attr("name");
@@ -542,7 +544,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.objectChangeState = function(sceneName,objectName,state)
 	{
-		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owned=\""+sceneName+"\"]").attr("state",state);
+		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owner=\""+sceneName+"\"]").attr("state",state);
 		this.objectOnLoad(sceneName,objectName);
 	}
 	/**
@@ -554,7 +556,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.objectGetState = function(sceneName,objectName)
 	{
-		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owned=\""+sceneName+"\"]").attr("state");
+		return $(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owner=\""+sceneName+"\"]").attr("state");
 	}
 	/**
 	 * Change the visibility status of a given object
@@ -565,7 +567,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.objectChangeVisibility = function(sceneName,objectName,status)
 	{
-		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owned=\""+sceneName+"\"]").attr("visibility",status);
+		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owner=\""+sceneName+"\"]").attr("visibility",status);
 	}
 	/**
 	 * Find and executes scene onLoad actions and onLoad actions for each object of scene 
@@ -582,7 +584,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			stateName  = $(this).attr("state");
 		});
-		console.log("objectOnLoad==scene:"+sceneName+"object:"+objectName+"state:"+stateName);
+		console.log("objectOnLoad==scene:"+sceneName+" object:"+objectName+" state:"+stateName);
 		
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var object = $(scene).find("objects object[name=\""+objectName+"\"]");
@@ -656,7 +658,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		console.log("sceneOnLoad==scene:"+sceneName+"state:"+stateName);
 		
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
-		var state = $(scene).find("background > state[name=\""+stateName+"\"]");
+		var state = $(scene).find("background > states > state[name=\""+stateName+"\"]");
 //TODO: graphics callback to load the correct image.
 		image =  $(state).find("image");
 		this.eventOccurred("background","","onLoad",sceneName);
@@ -710,8 +712,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 		//this.eventOccurred("inventory","","onDeselect","battery");
 		this.eventOccurred("inventory","","onInteract","");
 		
+		this.conditionSet("condition_passwd",true);
+		this.eventOccurred("object","","onClick","sirtati_01");
 		
-		this.executeCommand("sirtati_01","changeObjectState","openedFirstTime","changing state...")
+		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		//this.executeCommand("sirtati_01","changeObjectState","openedFirstTime","changing state...");
 		
 		this.objectChangeVisibility("sirtati_01","false");
 		//prints runtime in console!
