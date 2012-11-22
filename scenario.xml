@@ -26,17 +26,17 @@
 	<scenes>
 		<scene name="Room_01_wall01" default="true">
 			<!--Possible way outs to another scene or ... -->
-			<pathway name="west">
-				<action event="onClick">
-					<command name="changeScene" data="Room_01_wall02">
-						<message>going west</message>
-					</command>								
-				</action>
-			</pathway>
 			<background>
 				<state name="lowLight" default="true">
 					<image url="Room_01_wall01_Low_Light.jpg"></image>
 					<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
+					<pathway name="west">
+						<action event="onClick">
+							<command name="changeScene" data="Room_01_wall02">
+								<message>going west</message>
+							</command>								
+						</action>
+					</pathway>
 					<action event="onLoad">
 						<command name="changeObjectVisibility" target="all" data="false">
 							<message>Its too dark too see anything!</message>

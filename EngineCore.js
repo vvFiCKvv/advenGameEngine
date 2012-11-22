@@ -82,6 +82,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
 	p.runPause = function() {
+//TODO: put isRunning as attribute to runtime
 		p.isRunning = !p.isRunning;
 		if(p.isRunning)
 			this._runTest();
@@ -101,7 +102,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	/**
 	 * Executes A given command
 	 * @method executeCommand
-	 * @param {String} target the target name
+	 * @param {String} target the target name (scene.object)
 	 * @param {String} command the the given command
 	 * @param {String} data the data
 	 * @param {String} message the message
@@ -113,6 +114,29 @@ this.advenGameEngine = this.advenGameEngine||{};
 		 *  this will go to the below functions but first we need to stabilize
 		 *  the arguments of this and the parse event function*/  
 		console.log("command name:"+ command +" data: "+ data +" msg: "+ message);
+//Split target to correct names
+//TODO:must change target equals 'all' to correct one before call executeCommand 
+//if target equal all for each object of a scene
+//TODO:must change target equals 'this' to correct one before call executeCommand
+		var parentThis = this;
+		var sceneName="";
+		var objectName="";
+		targetArray=target.split(",");
+		targetArray.forEach(function(entry) {
+			var targetNode = entry.split(".");
+			if(targetNode.Length==2)
+			{
+				sceneName=targetNode[0];
+				objectName=targetNode[1];
+			}
+			else
+			{
+				sceneName=(parentThis.gameGetCurrentScene());
+				objectName=targetNode[0];
+			}
+			
+		});
+	
 		if(command=="inventoryAdd")
 		{
 			this.inventoryObjectAdd(data);
@@ -123,8 +147,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		else if(command=="changeObjectState")
 		{
-//TODO:must change target equals 'this' to correct one before call executeCommand 
-			this.objectChangeState(target,data);
+			
+			this.objectChangeState(sceneName,objectName,data);
 		}
 		else if(command=="changeScene")
 		{
@@ -135,9 +159,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		else if(command=="changeObjectVisibility")
 		{
-//TODO:must change target equals 'all' to correct one before call executeCommand 
-//if target equal all for each object of a scene
-			this.objectChangeVisibility(target,data);
+
+			this.objectChangeVisibility(sceneName,objectName,data);
 		}
 		else if(command=="conditionSet")
 		{
@@ -166,25 +189,27 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.parseScene = function(jqueryScene){
 		var xml =  this.gameXml;
 		var parentThis = this;
+		var defaultScene="";
 		$(jqueryScene).find("scene").each(function()
 		{
-			var sceneName =  $(this).attr('name');
-			if($(this).attr("default")=="true")
-			{
-				parentThis.gameChangeScene(sceneName);
-			}
+			var sceneName =  $(this).attr('name');			
 			$(this).find("background > state[default=\"true\"]").each(function()
 			{		
 				//add 
 				var stateName=$(this).attr("name");
-				var toAddString="<scene name=\""+sceneName+"\" backgroundState=\""+stateName+"\"/>";
-				$(xml).find("runtime > scenes").prepend($(toAddString));			
+				var toAddString="<scene name=\""+sceneName+"\"><background state=\""+stateName+"\"/></scene>";
+				$(xml).find("runtime > scenes").prepend($(toAddString));	
 			});	  
 			$(this).find("objects > object").each(function()
 			{		
 				parentThis.parseObject($(this),sceneName);
-			});	    
+			});	 
+			if($(this).attr("default")=="true")
+			{
+				defaultScene = sceneName;
+			}   
 		});
+		this.gameChangeScene(defaultScene);
 	}
 	/**
 	 * Loads a given jquery object into in the game xml. And assign it to a given scene
@@ -239,34 +264,46 @@ this.advenGameEngine = this.advenGameEngine||{};
 		return status;
 	}
 	/**
-	 * Adds an item to the inventory
-	 * @method inventoryObjectAdd
+	 * Selects an item from the inventory.
+	 * @method inventoryObjectSelect
 	 * @memberOf advenGameEngine.EngineCore#
-	 * @param {String} name The name of the item to add.
+	 * @param {String} name The name of the item to select.
 	 **/
 	p.inventoryObjectSelect = function (name)
 	{
-		var xml =  this.gameXml;
+		var parentThis = this;
+		if(name=="all")
+		{
+			$(this.gameXml).find("inventory > objects > item").each(function()
+			{
+				parentThis.inventoryObjectSelect($(this).attr("name"));
+			});
+			return;
+		}
 		var item = $("<item name=\""+name+"\">");
-		$(xml).find("runtime > inventory > selected").prepend(item);
+		$(this.gameXml).find("runtime > inventory > selected").prepend(item);
 	}
 	/**
-	 * Deletes an item from the inventory
-	 * @method inventoryObjectRemove
-	 * @param {String} name The name of the item to delete.
-	 * @return true if succeed otherwise false
+	 * Deselect an item from the inventory
+	 * @method inventoryObjectDeselect
+	 * @param {String} name The name of the item to deselect.
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
 	p.inventoryObjectDeselect = function (name)
 	{
-		var status = false;
-		var xml = this.gameXml;
-		$(xml).find(" runtime > inventory > selected > item[name='"+name+"']").each(function()
-				{	 
-					$(this).remove();
-					status=true;
-				});
-		return status;
+		var parentThis = this;
+		if(name=="all")
+		{
+			$(this.gameXml).find("inventory > objects > item").each(function()
+			{
+				parentThis.inventoryObjectDeselect($(this).attr("name"));
+			});
+			return;
+		}
+		$(this.gameXml).find(" runtime > inventory > selected > item[name='"+name+"']").each(function()
+		{	 
+			$(this).remove();
+		});
 	}
 	/**
 	 * Checks if an given item is selected
@@ -278,87 +315,153 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.inventoryIsItemSelected = function(name)
 	{
 		var contition = false;
-		var xml = this.gameXml;
-		$(xml).find("runtime > inventory > selected >  item[name='"+name+"']").each(function()
+		if(name=="")
+			return false;
+		$(this.gameXml).find("runtime > inventory > selected >  item[name='"+name+"']").each(function()
 		{
 			contition = true;
 		});
 		return contition;
 	}
+	//=================event Functions=====================
 	/**
-	 * .
-	 * @method inventoryCombineItems
-	 * @param {String} name1 
-	 * @param {String} name2 
-	 * @param {Function} callback
+	 * Send an event to the EngineCore.
+	 * @method eventOccurred
+	 * @param {String} type The type of sender ('pathway','background','object','inventory').
+	 * @param {String} sender The name of the sender.
+	 * @param {String} event The name of the event('onClick', 'onSelect','onDeselect', 'onFocus', 'onInteract', 'onLoad').
+	 * @param {String} data Additional Data.
 	 * @return 
 	 * @memberOf advenGameEngine.EngineCore#
-	 **/
-	p.inventoryCombineItems = function ()
+	**/
+	p.eventOccurred = function(type,sender,event, data)
 	{
-		var xml =  this.gameXml;
-		var result = false;
-		var foundItem=null;
+		console.log("eventOccurred=="+" type:"+type+" sender:"+sender+" event:"+event+" data:"+data)
+		var sceneName = this.gameGetCurrentScene();
+		var objectName;
+		var stateName;
+		var xmlQuery;
 		var parentThis = this;
-		$(xml).find("inventory > objects > action[event='onInteract']").each(function()
+		if(type=="pathway")
+		{
+			xmlQuery="scenes > scene[name='"+sceneName+"']";
+			stateName = this.sceneGetState(sceneName);
+			xmlQuery+=" > background > state[name='"+stateName+"']";
+			xmlQuery+=" > pathway['"+data+"']"
+		}
+		else if(type=="background")
+		{
+			xmlQuery="scenes > scene[name='"+sceneName+"']";
+			stateName = this.sceneGetState(sceneName);
+			xmlQuery+=" > background > state[name='"+stateName+"']";
+
+		}
+		else if(type=="object")
+		{
+			objectName=data;
+			xmlQuery="scenes > scene[name='"+sceneName+"'";
+			xmlQuery+=" > objects > object[name='"+objectName+"']";
+			stateName = this.objectGetState(sceneName,objectName);
+			xmlQuery+=" > state[name='"+stateName+"']";
+		}
+		else if(type=="inventory")
+		{
+			xmlQuery="inventory > objects";
+			if(event!="onInteract")
+			{
+
+				if(event=="onSelect")
+				{
+					this.inventoryObjectSelect(data);
+				}
+				else if(event=="onDeselect")
+				{
+					this.inventoryObjectDeselect(data);
+				}
+				xmlQuery+=" > item[name='"+data+"']";
+			}
+		}
+		xmlQuery+=" > action[event='"+event+"']";
+
+		$(this.gameXml).find(xmlQuery).each(function()
 				{
 					var contitions = false;
+					var stopSearching = false;
 					$(this).find("requires > item").each(function()
 					{
+						if(stopSearching==true)
+							return;
 						if(parentThis.inventoryIsItemSelected($(this).attr("name")))
 						{
 							contitions =true;
 						}else
 						{
 							contitions = false;
-							return;
+							stopSearching=true;
 						}
+						
 					});
 					if(contitions==false)
 						return;
 					$(this).find("requires > condition").each(function()
 					{
+						if(stopSearching==true)
+							return;
 						if(!parentThis.conditionCheck($(this).attr("name")))
 						{
 							contitions =false;
-							return;
+							stopSearching=true;
 						}
 					});
-					if(contitions)
+					if(contitions)//foundI item!
 						{
-							foundItem = $(this);
-							result = true;
+							$(this).find("command").each(function(){	
+								var messages=$(this).find("message"); //choose a random message 
+								var rand = EngineCore._randomGen(0,messages.length);
+								var commandMessage = messages[rand-1];	
+								var commandName=$(this).attr("name");
+								var commandData=$(this).attr("data");
+								var commandTarget=$(this).attr("target");
+								if(commandTarget=="this"||commandTarget==null)
+								{
+									commandTarget+=sceneName;
+									if(objectName)
+									{
+										commandTarget+="."+objectName;
+									}
+								}
+								if(commandTarget=="all")
+								{
+									$(parentThis.gameXml).find("runtime > objects > object[owned='"+sceneName+"']")
+									{
+										commandTarget+=sceneName;
+										commandTarget+="."+$(this).attr("name");
+										commandTarget+=",";
+									}
+								}
+								if(commandData==null)
+								{
+									commandData = EngineCore.jqueryToString($(this).children());
+								}
+								
+								parentThis.executeCommand(commandTarget,commandName,commandData,$(commandMessage).text());
+							
+							});
 							return;
 						}
 				});
-		var parentThis = this;
-		if(foundItem)	//execute commands
-		{
-			$(foundItem).find("command").each(function(){	
-				var messages=$(this).find("message"); //choose a random message 
-				var rand = EngineCore._randomGen(0,messages.length);
-				var cmsg = messages[rand-1];	
-				var cname=$(this).attr("name");
-				var cdata=$(this).attr("data");
-				if(cdata==null)
-				{
-					cdata = EngineCore.jqueryToString($(this).children());
-				}
-				
-				parentThis.executeCommand(foundItem,cname,cdata,$(cmsg).text());
-				
-			});
-		}
-		return result;
+	
+//TODO:Implementation missing
+		return;
 	}
-	//==============conditions Functions=====================
+	//================Conditions Functions===================
 	/**
 	 * Checks if a given condition is satisfied
-	 * @method inventoryIsItemSelected
+	 * @method conditionCheck
 	 * @param {String} name The condition name.
 	 * @return true if given condition is satisfied, otherwise false
 	 * @memberOf advenGameEngine.EngineCore#
-	 **/
+	**/
 	p.conditionCheck = function(name)
 	{
 		var contition = false;
@@ -375,7 +478,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	/**
 	 * Set the status of a given condition.
-	 * @method inventoryIsItemSelected
+	 * @method conditionSet
 	 * @param {String} name The condition name.
 	 * @param {Boolean} name The condition status.
 	 * @memberOf advenGameEngine.EngineCore#
@@ -395,23 +498,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 			$(xml).find("runtime > conditions").prepend(item);	
 		}
 	}
+
 	/**
-	 * .
-	 * @method eventOccurred
-	 * @param {Function} callback
-	 * @return 
-	 * @memberOf advenGameEngine.EngineCore#
-	 **/
-	p.eventOccurred = function(sender,type,event, data)
-	{
-//TODO:Implementation missing
-		return;
-	}
-	/**
-	 * .
+	 * Foreach object available in inventory call a given function. 
 	 * @method inventoryGetItems
-	 * @param {Function} callback
-	 * @return 
+	 * @param {Function} callback The function to call.
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
 	p.inventoryGetItems = function (callback)
@@ -424,13 +515,13 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	//===================Object Functions====================
 	/**
-	 * .
-	 * @method getObjectImage
-	 * @param {String} name
-	 * @return 
+	 * Gets The image of an inventory object
+	 * @method inventoryObjectGetImage
+	 * @param {String} name the name of the inventory object
+	 * @return The url of the image
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.getObjectImage = function (name)
+	p.inventoryObjectGetImage = function (name)
 	{
 		var xml = this.gameXml;
 		var res;
@@ -443,37 +534,85 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	/**
 	 * Change the state of a given object
-	 * @method getObjectImage
-	 * @param {String} target The name of given object.
-	 * @param {String} target The name of new state.
+	 * @method objectChangeState
+	 * @param {String} sceneName The name of scene own the given object.
+	 * @param {String} objectName The name of given object.
+	 * @param {String} state The name of new state.
 	 * @memberOf advenGameEngine.EngineCore#
-	 **/
-	p.objectChangeState = function(target,state)
+	**/
+	p.objectChangeState = function(sceneName,objectName,state)
 	{
-		$(this.gameXml).find("runtime > objects > object[name=\""+target+"\"]").attr("state",state);
+		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owned=\""+sceneName+"\"]").attr("state",state);
+		this.objectOnLoad(sceneName,objectName);
+	}
+	/**
+	 * Get the state of a given object
+	 * @method objectGetState
+	 * @param {String} sceneName The name of scene own the given object.
+	 * @param {String} objectName The name of given object.
+	 * @memberOf advenGameEngine.EngineCore#
+	**/
+	p.objectGetState = function(sceneName,objectName)
+	{
+		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owned=\""+sceneName+"\"]").attr("state");
 	}
 	/**
 	 * Change the visibility status of a given object
-	 * @method getObjectImage
+	 * @method objectChangeVisibility
 	 * @param {String} target The name of given object.
 	 * @param {String} target The name of new status.
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.objectChangeVisibility = function(target,status)
+	p.objectChangeVisibility = function(sceneName,objectName,status)
 	{
-		$(this.gameXml).find("runtime > objects > object[name=\""+target+"\"]").attr("visibility",status);
+		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owned=\""+sceneName+"\"]").attr("visibility",status);
+	}
+	/**
+	 * Find and executes scene onLoad actions and onLoad actions for each object of scene 
+	 * @method sceneOnLoad
+	 * @param {String} target The name of given scene.
+	 * @memberOf advenGameEngine.EngineCore#
+	**/
+	p.objectOnLoad= function(sceneName,objectName)
+	{
+
+		var stateName = "";
+		parentThis=this;
+		$(this.gameXml).find("runtime > objects > object[name=\""+objectName+"\"][owner=\""+sceneName+"\"]").each(function()
+		{
+			stateName  = $(this).attr("state");
+		});
+		console.log("objectOnLoad==scene:"+sceneName+"object:"+objectName+"state:"+stateName);
+		
+		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
+		var object = $(scene).find("objects object[name=\""+objectName+"\"]");
+		var state = $(object).find("state[name=\""+stateName+"\"]");
+//TODO: graphics callback to load the correct image.
+		image =  $(state).find("image");
+		this.eventOccurred("object","","onLoad",objectName);		 
 	}
 	//===================Scene Functions====================
 	/**
 	 * Change the state of a given scene
-	 * @method getObjectImage
-	 * @param {String} target The name of given scene.
+	 * @method sceneChangeState
+	 * @param {String} sceneName The name of given scene.
 	 * @param {String} target The name of new state. 
 	 * @memberOf advenGameEngine.EngineCore#
 	**/
-	p.sceneChangeState= function(target,state)
+	p.sceneChangeState= function(sceneName,state)
 	{
-		$(this.gameXml).find("runtime > scenes > scene[name=\""+target+"\"]").attr("state",state);
+		$(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").attr("state",state);
+		this.sceneOnLoad(sceneName);
+	}
+	/**
+	 * Get the state of a given scene
+	 * @method sceneGetState
+	 * @param {String} sceneName The name of given scene.
+	 * @memberOf advenGameEngine.EngineCore#
+	**/
+	p.sceneGetState = function(sceneName)
+	{
+		$(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").attr("state");
 	}
 	/**
 	 * Change the scene of the game
@@ -481,12 +620,56 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * @param {String} scene The name of scene to load.
 	 * @memberOf advenGameEngine.EngineCore#
 	**/
-	p.gameChangeScene = function (scene)
+	p.gameChangeScene = function (sceneName)
 	{
-		$(this.gameXml).find("runtime > scenes").attr("active",scene);
+		$(this.gameXml).find("runtime > scenes").attr("active",sceneName);
+		this.sceneOnLoad(sceneName);
+	}
+
+	/**
+	 * Get the name of the current scene.
+	 * @method gameGetCurrentScene
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @return The name of current scene.
+	**/
+	p.gameGetCurrentScene = function ()
+	{
+		return $(this.gameXml).find("runtime > scenes").attr("active");
+	}
+	
+	/**
+	 * Find and executes scene onLoad actions and onLoad actions for each object of scene 
+	 * @method sceneOnLoad
+	 * @param {String} target The name of given scene.
+	 * @memberOf advenGameEngine.EngineCore#
+	**/
+	p.sceneOnLoad= function(sceneName)
+	{
+
+		var stateName = "";
+		parentThis=this;
+		$(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").each(function()
+		{
+			stateName  = $(this).attr("state");
+		});
+		
+		console.log("sceneOnLoad==scene:"+sceneName+"state:"+stateName);
+		
+		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
+		var state = $(scene).find("background > state[name=\""+stateName+"\"]");
+//TODO: graphics callback to load the correct image.
+		image =  $(state).find("image");
+		this.eventOccurred("background","","onLoad",sceneName);
+		$(scene).find("objects > object").each(function()
+			  {	
+				  var objectName=$(this).attr("name");
+				  parentThis.objectOnLoad(sceneName,objectName);
+				  	    
+			  });
+		 
 	}
 	//=================================private methods=================================
-	//================nitializing Functions==================
+	//================initializing Functions==================
 	/**
 	 * General initialization method.
 	 * @method initialize
@@ -513,17 +696,22 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var xml = this.gameXml;
 		//prints runtime in console!
 		EngineCore._xmlFindConsoleLog(xml,"runtime");
+		
 					
 		this.inventoryObjectAdd("flashLightBroken");
 		this.inventoryObjectAdd("battery");
 		this.inventoryObjectAdd("screwDriver");
-		this.inventoryObjectSelect("flashLightBroken");
-		this.inventoryObjectSelect("battery");
-		//this.inventoryObjectDeselect("battery");
-		this.conditionSet("condition_darkRoom",true);
-		this.inventoryCombineItems();
 		
-		this.executeCommand("sirtati_01","changeObjectState","opened","changing state...")
+		//this.gameChangeScene("Room_01_wall01");
+		
+		this.conditionSet("condition_darkRoom",true);
+		//this.eventOccurred("inventory","","onDeselect","all");
+		this.eventOccurred("inventory","","onSelect","all");
+		//this.eventOccurred("inventory","","onDeselect","battery");
+		this.eventOccurred("inventory","","onInteract","");
+		
+		
+		this.executeCommand("sirtati_01","changeObjectState","openedFirstTime","changing state...")
 		
 		this.objectChangeVisibility("sirtati_01","false");
 		//prints runtime in console!
@@ -532,9 +720,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 		//prints image url for each inventory items.
 		parentThis = this;	
 		this.inventoryGetItems(function(name){
-			$("#output").append(parentThis.getObjectImage(name) + "<br />");
+			$("#output").append(parentThis.inventoryObjectGetImage(name) + "<br />");
 		});
 		
+
 		
 		
 		
@@ -554,6 +743,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 }
 	EngineCore._xmlFindConsoleLog = function(xml,srt)
 	{
+		if(srt=="")
+		{
+			console.log(EngineCore.jqueryToString(xml));
+		}
 		res = $(xml).find(srt);
 		console.log(EngineCore.jqueryToString(res));
 	}
