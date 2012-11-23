@@ -110,14 +110,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.executeCommand = function (target,command,data,message)
 	{
-/*TODO: create new event when changing scene/object states.
-		 *  this will go to the below functions but first we need to stabilize
-		 *  the arguments of this and the parse event function*/  
-		console.log("command name:"+ command +" data: "+ data +" msg: "+ message);
-//Split target to correct names
-//TODO:must change target equals 'all' to correct one before call executeCommand 
-//if target equal all for each object of a scene
-//TODO:must change target equals 'this' to correct one before call executeCommand
+		console.log("executeCommand==command name:"+ command +" data: "+ data +" msg: "+ message);
 		var parentThis = this;
 		var sceneName="";
 		var objectName="";
@@ -133,49 +126,51 @@ this.advenGameEngine = this.advenGameEngine||{};
 			{
 				sceneName=(parentThis.gameGetCurrentScene());
 				objectName=targetNode[0];
-			}
-			
-		});
-	
-		if(command=="inventoryAdd")
-		{
-			this.inventoryObjectAdd(data);
-		}
-		else if(command=="inventoryRemove")
-		{
-			this.inventoryObjectRemove(data);
-		}
-		else if(command=="changeObjectState")
-		{
-			
-			this.objectChangeState(sceneName,objectName,data);
-		}
-		else if(command=="changeScene")
-		{
-			this.gameChangeScene(data);
-		}else if(command=="changeBackgroundState")
-		{
-			this.sceneChangeState(data);
-		}
-		else if(command=="changeObjectVisibility")
-		{
+			}		
 
-			this.objectChangeVisibility(sceneName,objectName,data);
-		}
-		else if(command=="conditionSet")
-		{
-			var cname = $(data).attr("name");
-			var cstatus =  $(data).attr("status");
-			if(cstatus=="true")
+//TODO: graphics callback to display the message.
+			if(message!="")
+				$("#output").append(message+"<br />");
+			if(command=="inventoryAdd")
 			{
-				this.conditionSet(cname,true);
+				parentThis.inventoryObjectAdd(data);
 			}
-			else
+			else if(command=="inventoryRemove")
 			{
-				this.conditionSet(cname,false);
+				parentThis.inventoryObjectRemove(data);
 			}
-			
-		}
+			else if(command=="changeObjectState")
+			{
+				
+				parentThis.objectChangeState(sceneName,objectName,data);
+			}
+			else if(command=="changeScene")
+			{
+				parentThis.gameChangeScene(data);
+			}else if(command=="changeBackgroundState")
+			{
+				parentThis.sceneChangeState(sceneName,data);
+			}
+			else if(command=="changeObjectVisibility")
+			{
+
+				parentThis.objectChangeVisibility(sceneName,objectName,data);
+			}
+			else if(command=="conditionSet")
+			{
+				var cname = $(data).attr("name");
+				var cstatus =  $(data).attr("status");
+				if(cstatus=="true")
+				{
+					parentThis.conditionSet(cname,true);
+				}
+				else
+				{
+					parentThis.conditionSet(cname,false);
+				}
+				
+			}
+		});
 //TODO:Add xml prototype for variables
 		//callback(message)
 	}
@@ -240,9 +235,26 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.inventoryObjectAdd = function (name)
 	{
-		var xml = this.gameXml;
 		var item = $("<item name=\""+name+"\">");
-		$(xml).find("runtime > inventory > available").prepend(item);
+		if(this.inventoryIsItemAvailable(name))
+			return;
+		$(this.gameXml).find("runtime > inventory > available").prepend(item);
+	}
+	/**
+	 * Checks if an item is available in the inventory.
+	 * @method inventoryObjectAdd
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @param {String} name The name of the item to check.
+	 **/
+	p.inventoryIsItemAvailable = function (name)
+	{
+		var res=false;
+		$(this.gameXml).find(" runtime > inventory > available > item[name='"+name+"']").each(function()
+			{	 
+				//already exist
+			res=true;
+			});
+		return res;
 	}
 	/**
 	 * Deletes an item from the inventory
@@ -254,8 +266,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.inventoryObjectRemove = function (name)
 	{
 		var status = false;
-		var xml =  this.gameXml;
-		$(xml).find(" runtime > inventory > available > item[name='"+name+"']").each(function()
+		$(this.gameXml).find(" runtime > inventory > available > item[name='"+name+"']").each(function()
 				{	 
 					$(this).remove();
 					status=true;
@@ -280,6 +291,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 			});
 			return;
 		}
+		
+		if(this.inventoryIsItemSelected(name)) //already selected
+			return;
 		var item = $("<item name=\""+name+"\">");
 		$(this.gameXml).find("runtime > inventory > selected").prepend(item);
 	}
@@ -336,6 +350,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.eventOccurred = function(type,sender,event, data)
 	{
+		EngineCore._xmlFindConsoleLog(this.gameXml,"runtime");
 		console.log("eventOccurred=="+" type:"+type+" sender:"+sender+" event:"+event+" data:"+data)
 		var sceneName = this.gameGetCurrentScene();
 		var objectName;
@@ -420,7 +435,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 							$(this).find("command").each(function(){	
 								var messages=$(this).find("message"); //choose a random message 
 								var rand = EngineCore._randomGen(0,messages.length);
-								var commandMessage = messages[rand-1];	
+								var commandMessage = $(messages[rand-1]).text();	
 								var commandName=$(this).attr("name");
 								var commandData=$(this).attr("data");
 								var commandTarget=$(this).attr("target");
@@ -434,26 +449,29 @@ this.advenGameEngine = this.advenGameEngine||{};
 								}
 								if(commandTarget=="all")
 								{
-									$(parentThis.gameXml).find("runtime > objects > object[owner='"+sceneName+"']")
+									commandTarget="";
+									$(parentThis.gameXml).find("runtime > objects > object[owner='"+sceneName+"']").each(function()
 									{
+										if(commandTarget!="")
+										{
+											commandTarget+=",";
+										}
 										commandTarget+=sceneName;
 										commandTarget+="."+$(this).attr("name");
-										commandTarget+=",";
-									}
+										
+									});
 								}
 								if(commandData==null)
 								{
 									commandData = EngineCore.jqueryToString($(this).children());
 								}
 								
-								parentThis.executeCommand(commandTarget,commandName,commandData,$(commandMessage).text());
+								parentThis.executeCommand(commandTarget,commandName,commandData,commandMessage);
 							
 							});
 							return;
 						}
 				});
-	
-//TODO:Implementation missing
 		return;
 	}
 	//================Conditions Functions===================
@@ -571,7 +589,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	/**
 	 * Find and executes scene onLoad actions and onLoad actions for each object of scene 
-	 * @method sceneOnLoad
+	 * @method objectOnLoad
 	 * @param {String} target The name of given scene.
 	 * @memberOf advenGameEngine.EngineCore#
 	**/
@@ -614,7 +632,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.sceneGetState = function(sceneName)
 	{
-		$(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").attr("state");
+		return $(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").attr("state");
 	}
 	/**
 	 * Change the scene of the game
@@ -702,35 +720,57 @@ this.advenGameEngine = this.advenGameEngine||{};
 					
 		this.inventoryObjectAdd("flashLightBroken");
 		this.inventoryObjectAdd("battery");
-		this.inventoryObjectAdd("screwDriver");
+		
 		
 		//this.gameChangeScene("Room_01_wall01");
 		
-		this.conditionSet("condition_darkRoom",true);
-		//this.eventOccurred("inventory","","onDeselect","all");
-		this.eventOccurred("inventory","","onSelect","all");
-		//this.eventOccurred("inventory","","onDeselect","battery");
+		this.conditionSet("condition_batteryFull",true);
+		
+		this.eventOccurred("inventory","","onSelect","battery");
+		this.eventOccurred("inventory","","onSelect","flashLightBroken");
 		this.eventOccurred("inventory","","onInteract","");
 		
+		this.eventOccurred("inventory","","onSelect","flashLight");
+		this.eventOccurred("background","","onClick","");
+		
+		this.eventOccurred("background","","onClick","");
+		
+		this.inventoryObjectAdd("key");
+		this.inventoryObjectSelect("key");
+		
+		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		
+		
 		this.conditionSet("condition_passwd",true);
+		
 		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		this.inventoryObjectAdd("screwDriver");
+		this.eventOccurred("inventory","","onSelect","screwDriver");
 		
 		this.eventOccurred("object","","onClick","sirtati_01");
 		
 		this.eventOccurred("object","","onClick","sirtati_01");
 		
 		this.eventOccurred("object","","onClick","sirtati_01");
+		
+		this.eventOccurred("object","","onClick","sirtati_01");
+		
 		
 		//this.executeCommand("sirtati_01","changeObjectState","openedFirstTime","changing state...");
 		
-		this.objectChangeVisibility("sirtati_01","false");
+		//this.objectChangeVisibility("sirtati_01","false");
 		//prints runtime in console!
 		EngineCore._xmlFindConsoleLog(xml,"runtime");
 		
 		//prints image url for each inventory items.
-		parentThis = this;	
+		parentThis = this;
+		$("#output").append("<br />===Inventory===<br />");
 		this.inventoryGetItems(function(name){
-			$("#output").append(parentThis.inventoryObjectGetImage(name) + "<br />");
+			$("#output").append("item: "+name+" image: "+parentThis.inventoryObjectGetImage(name) + "<br />");
 		});
 		
 
@@ -739,7 +779,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 	
 	}
-//TODO:Implementation missing
+//TODO: put isRunning as attribute to runtime
 	p.isRunning = false;
 	//=================Auxiliary Functions===================	
 	EngineCore._randomGen = function (minimum, maximum)

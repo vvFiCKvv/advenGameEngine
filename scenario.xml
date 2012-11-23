@@ -46,7 +46,7 @@
 						<action event="onClick">
 							<requires><item name="flashLight"></item></requires>						
 							<command name="changeBackgroundState" target="this" data="fullLight">
-								<message>Opening Lights</message>
+								<message>Using flash Light</message>
 							</command>								
 						</action>
 					</state>
@@ -55,7 +55,7 @@
 						<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
 						<action event="onLoad">
 							<command name="changeObjectVisibility" target="all" data="true">
-								<message>Its too dark too see anything!</message>
+								<message>I can see now!</message>
 							</command>								
 						</action>
 						<action event="onClick">
@@ -99,7 +99,7 @@
 							<image url="sirtati_01_semiOpen.jpg"></image>
 							<action event="onLoad">
 								<requires>
-									<condition name="condition_FirstTime" not="true"></condition>
+									<condition name="condition_FirstTimeShowed"></condition>
 								</requires>
 								<command name="changeObjectState" target="this" data="opened">
 									<message>openning...2x and more</message>
@@ -108,29 +108,37 @@
 							<action event="onClick">							
 								<requires>
 									<item name="screwDriver"></item>
-									<condition name="condition_FirstTime"></condition>
+									<condition name="condition_FirstTimeShowed" not="true"></condition>
 								</requires>
-								<command name="conditionSet" target="this"><data name="condition_FirstTime" status="false"></data></command>
+								<command name="conditionSet" target="this"><data name="condition_FirstTimeShowed" status="true"></data></command>
 								<command name="changeObjectState" target="this" data="openedFirstTime">
 									<message>opening 1st time</message>
 								</command>								
 							</action>
-							<action event="onClick">
-								<command name="changeObjectState" target="this" data="opened">
-									<message>closing</message>
-								</command>	
-							</action>						
+							<action event="onClick">							
+								<requires>
+									<condition name="condition_FirstTimeShowed" not="true"></condition>
+								</requires>
+								<command>
+									<message>you need a screwDriver</message>
+								</command>								
+							</action>			
 						</state>
 						<state name="closed" default="true">
 							<image url="sirtati_01_closed.jpg"></image>
 							<action event="onClick">
-								<command>
-									<message>you need the password and the key!</message>
-									<message>it has a key lock!</message>
-								</command>
+								<requires>
+									<condition name="condition_keyInserted" not="true"></condition>
+									<item name="key"></item>
+								</requires>
+								<command name="inventoryRemove" data="key"><message>Key inserted</message></command>
+								<command name="conditionSet" target="this"><data name="condition_keyInserted" status="true"></data></command>
 							</action>
 							<action event="onClick">
-								<requires><item name="key"></item></requires>
+								<requires>
+									<condition name="condition_keyInserted"></condition>
+									<condition name="condition_passwd" not="true"></condition>
+								</requires>
 								<command name="codeCheck">
 									<data><codecheck condition="condition_passwd" password="1243"></codecheck></data>
 									<message>the code is common, can you guess?</message>
@@ -141,11 +149,9 @@
 							<action event="onClick">
 								<requires>
 									<condition name="condition_passwd"></condition>
-									<condition name="condition_FirstTime" not="true"></condition>
 								</requires>
-								<command name="conditionSet" target="this"><data name="condition_FirstTime" status="true"></data></command>	
 								<command name="changeObjectState" target="this" data="semiOpen"><message>well done, its unlocked</message></command>
-										</action>
+							</action>
 						</state>
 					</states>
 				</object>
@@ -198,11 +204,11 @@
 				<requires>
 					<item name="flashLightBroken"></item>
 					<item name="battery"></item>
-					<condition name="condition_darkRoom"></condition>
+					<condition name="condition_batteryFull"></condition>
 				</requires>
 					<command name="inventoryAdd" data="flashLight">
 							<message>combined flash light with battery, flash light works.</message>
-							<message>yeah!</message>
+							<message>combined!, yeah!</message>
 					</command>
 					<command name="inventoryRemove" data="flashLightBroken"></command>
 					<command name="inventoryRemove" data="battery"></command>
