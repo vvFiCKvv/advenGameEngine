@@ -7,6 +7,7 @@ $(document).ready(function(){
 	init();
 });
 var engine;
+var graphics;
 function init()
 {
 	$.ajax({
@@ -25,7 +26,10 @@ function parseXml(xml)
 	var xmlString = advenGameEngine.EngineCore.jqueryToString($(xml));
 	engine = new advenGameEngine.EngineCore(xmlString);
 	//	engine.loadXmlString(xmlString);
-	engine.runPause();
+	//engine.runPause();
+	
+	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
+	//graphics.runTest01();
 }
 
 

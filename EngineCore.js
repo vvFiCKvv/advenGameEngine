@@ -12,17 +12,17 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * Given some events it can run it. 
 	 * @class EngineCore
 	 * @constructor
-	 **/
+	**/
 	var EngineCore = function() {
 		this._initialize();
 	}
-		/**
+	/**
 	 * The EngineCore allows you to handle a given xml scenario. 
 	 * Given some events it can run it. 
 	 * @class EngineCore
 	 * @param {String} scenario xml string
 	 * @constructor
-	 **/
+	**/
 	var EngineCore = function(xml) {
 		this._initialize(xml);
 	}
@@ -169,6 +169,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 					parentThis.conditionSet(cname,false);
 				}
 				
+			}
+			else if(command=="codeCheck")
+			{
+//TODO: callback
 			}
 		});
 //TODO:Add xml prototype for variables
@@ -801,8 +805,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		console.log(EngineCore.jqueryToString(res));
 	}
 
-/** @namespace */
-advenGameEngine.EngineCore = EngineCore;
+	/** @namespace */
+	advenGameEngine.EngineCore = EngineCore;
 }());
 
 
