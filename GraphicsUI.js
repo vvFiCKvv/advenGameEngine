@@ -37,6 +37,99 @@ this.advenGameEngine = this.advenGameEngine||{};
 	//=============================public static methods===============================
 	
 	//=================================public methods=================================
+	p.inventoryTransitionPosition=0;
+	p.inventoryTransitionCommand=""
+	p.inventoryTransition = function(percent)
+	{
+		var position = this.inventoryTransitionPosition;
+		var command = this.inventoryTransitionCommand;
+		
+		if(command=="openSelectUI")
+		{
+			position = percent;
+		}else if(command=="closeSelectUI")
+		{
+			if(position<=1)
+			{
+				position=1-percent;
+			}
+			if(position>=2)
+			{
+				position=2+percent;
+			}
+		}
+		else if(command=="openCompineUI")
+		{
+			position=1+percent;
+		}else if(command == "openViewUI")
+		{
+			position=2+-percent;
+		}
+		
+		this.inventoryTransitionPosition=position;
+		this.inventorySelectUITransition(position);
+		this.inventoryCompineUITransition(position);
+		this.inventoryViewUITransition(position);
+
+	}
+	p.inventorySelectUITransition = function(percent)
+	{
+		var invertPercent = 1-percent;
+		var xLeft=0.4*this.canvas.width;
+		var xSplit=0.1*this.canvas.width;
+		var delimiter = xSplit*0.4;
+		if(percent==0 || percent==3)
+		{
+			this.inventorySelectUI.x=-xLeft-delimiter*0.2;
+		}
+		else if(percent<=1)
+		{
+		
+			this.inventorySelectUI.x=-xLeft*invertPercent
+		}else if(percent>=2 && percent<=3)
+		{
+			this.inventorySelectUI.x=-xLeft*(percent-2)
+		}
+		
+	}
+	p.inventoryCompineUITransition = function(percent)
+	{
+		var xSplit=0.1*this.canvas.width;
+		var delimiter = xSplit*0.4;
+		var invertPercent = 1-percent;
+		if(percent>=2 && percent<=3)
+		{
+			this.inventoryCompineUI.y =(this.canvas.height-xSplit)*(percent-2)
+		}
+		else if(percent>1)
+		{
+			this.inventoryCompineUI.y = this.canvas.height-2*xSplit - delimiter+(-this.canvas.height+2*xSplit + delimiter)*(percent-1);
+		}
+		else
+		{
+			this.inventoryCompineUI.y = this.canvas.height-xSplit +(-xSplit - delimiter)*percent;
+		}		
+	}
+	p.inventoryViewUITransition = function (percent)
+	{
+		var xSplit=0.1*this.canvas.width;
+		var delimiter = xSplit*0.4;
+		var invertPercent = 1-percent;
+		if(percent>=2 && percent<=3)
+		{
+			this.inventoryViewUI.y  =-this.canvas.height+2*xSplit + delimiter - (xSplit+delimiter)*(percent-2)
+		}
+		else if(percent>1)
+		{
+			this.inventoryViewUI.y = (-this.canvas.height+2*xSplit + delimiter)*(percent-1)
+		}
+		else
+		{
+			this.inventoryViewUI.y = -this.canvas.height+xSplit + (this.canvas.height-xSplit )*(percent)
+			
+		}
+		
+	}
 	p.runTest01 = function()
 	{
 		// load the source image:
@@ -148,8 +241,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this._initializeGameUI();
 		this._initializeInventoryUI();
 		this._initializeGameLogUI();
-
 		
+		
+
 		
 		return this;
 	}
@@ -158,6 +252,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 	{
 		// load the source image:
 		var parentThis=this;
+		var bg = new Image();
+			bg.src ="http://www.freemediagoo.com/images/reg/IMG_0783.jpg";
+			bg.onload = function(event)
+			{
+				parentThis.gameUI.addChild(new createjs.Bitmap(event.target));
+			}
 		var image = new Image();
 		image.src = "source/images/Fruit0032_SS.png";
 		image.onload = function(event)
@@ -166,10 +266,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 			var bitmap;
 			var container = new createjs.Container();
 			parentThis.gameUI.addChild(container);
-			
-			var bg = new createjs.Shape();
-			bg.graphics.beginFill("#AFA").setStrokeStyle(8).drawRect(0,0,parentThis.canvas.width, parentThis.canvas.height);
-			container.addChildAt(bg);
 			
 			for(var i=0;i<10;i++)
 			{
@@ -193,13 +289,17 @@ this.advenGameEngine = this.advenGameEngine||{};
 				//bitmap.hitArea = hitArea;
 				//bitmap.mask = hitArea;
 				//container.addChild(hitArea);
+				
 				bitmap.onPress = function(evt) {
 						alert("tar:"+evt.target.name);
-								
+
 				
 				}
 			}
+			
+			
 		}
+
 	}
 	p._initializeInventoryUI = function()
 	{
@@ -227,6 +327,15 @@ this.advenGameEngine = this.advenGameEngine||{};
 		bg.alpha = 0.7;
 		this.inventoryViewUI.addChildAt(bg);
 		
+		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
+		txt.text = "Object Details";
+		txt.lineWidth = w;
+		txt.textBaseline = "top";
+		txt.textAlign = "center";
+		txt.y = y+0.8*h;
+		txt.x = x+w/2;
+		this.inventoryViewUI.addChild(txt);
+		
 		var x=xRight+delimiter/2;
 		var y=xSplit+delimiter;
 		var w=this.canvas.width-xRight-delimiter;
@@ -237,6 +346,17 @@ this.advenGameEngine = this.advenGameEngine||{};
 		g.setStrokeStyle(delimiter*0.4).beginStroke("#044").drawRoundRectComplex(x,y,w,h,cornerRatio,cornerRatio,0,0);
 		bg.alpha = 0.7;
 		this.inventoryCompineUI.addChildAt(bg);
+		
+		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
+			txt.text = "Compine Objects";
+			txt.lineWidth = w;
+			txt.textBaseline = "top";
+			txt.textAlign = "center";
+			txt.y = 1.1*y;
+			txt.x = x+w/2;
+		this.inventoryCompineUI.addChild(txt);
+		
+		
 		
 		var x1=xLeft;
 		var y1=this.canvas.height-xSplit;
@@ -266,18 +386,88 @@ this.advenGameEngine = this.advenGameEngine||{};
 		bg.alpha = 0.7;
 		this.inventorySelectUI.addChildAt(bg);
 		
+		var y=xSplit+delimiter;
+		var h=this.canvas.height-xSplit-delimiter;
+		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
+		txt.text = "Select Object";
+		txt.lineWidth = w;
+		txt.textBaseline = "top";
+		txt.textAlign = "center";
+		txt.y = y+0.8*h;
+		txt.x = x1-2*xSplit;
+		this.inventorySelectUI.addChild(txt);
 		
-		this.inventoryCompineUI.y += this.canvas.height-2*xSplit - delimiter;
-		
-		//this.inventoryViewUI.y -= this.canvas.height-2*xSplit - delimiter;
-		
-		//this.inventorySelectUI.x-=xLeft+delimiter*0.2;
 		
 		
+		this.inventoryTransitionPosition=0;
+		this.inventoryTransitionCommand="closeSelectUI";
+		this.inventoryTransition(1);
+		
+		
+			
+		
+		// start the tick and point it at the window so we can do some work before updating the stage:
+		createjs.Ticker.useRAF = true;
+		// if we use requestAnimationFrame, we should use a framerate that is a factor of 60:
+		createjs.Ticker.setFPS(50);
+		
+		this.inventorySelectUI.onPress = function(event)
+		{
+			parentThis.inventoryCommand("toggleSelectUI");
+		}
+		
+		this.inventoryCompineUI.onPress = function(event)
+		{
+			parentThis.inventoryCommand("openCompineUI");
+		}
+		this.inventoryViewUI.onPress = function(event)
+		{
+			parentThis.inventoryCommand("openViewUI");
+		}
+		
+		
+				
 	}
 	p._initializeGameLogUI = function()
 	{
 		
+	}
+	p.inventoryCommand = function(command)
+	{
+		if(this.tickPercent!=0)
+		{
+			return false;
+		}
+		if(command=="toggleSelectUI")
+		{		
+			if(this.inventoryTransitionPosition==0||this.inventoryTransitionPosition==3)
+			{
+				this.inventoryTransitionCommand="openSelectUI"
+			}
+			else
+			{
+				this.inventoryTransitionCommand="closeSelectUI"
+			}		
+		
+		}else
+		{
+			this.inventoryTransitionCommand=command;
+		}
+		if(command=="openViewUI"&&this.inventoryTransitionPosition==1)
+			return false;
+		if(command=="openCompineUI"&&this.inventoryTransitionPosition==2)
+			return false;
+		createjs.Ticker.addListener(this);
+	}
+	p.tickPercent=0;
+	p.tick = function()
+	{
+		this.inventoryTransition((++this.tickPercent)/20);
+		if(this.tickPercent==20)
+		{
+			createjs.Ticker.removeListener(this)
+			this.tickPercent=0;
+		}
 	}
 
 	/** @namespace */

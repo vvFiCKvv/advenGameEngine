@@ -30,6 +30,7 @@ function parseXml(xml)
 	
 	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
 	//graphics.runTest01();
+	
 }
 
 
