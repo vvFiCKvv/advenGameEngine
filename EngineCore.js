@@ -805,10 +805,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		//prints image url for each inventory items.
 		parentThis = this;
-		$("#output").append("<br />===Inventory===<br />");
+		/*$("#output").append("<br />===Inventory===<br />");
 		this.inventoryGetItems(function(name){
 			$("#output").append("item: "+name+" image: "+parentThis.inventoryObjectGetImage(name) + "<br />");
-		});
+		});*/
 		
 
 		

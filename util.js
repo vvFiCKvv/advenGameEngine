@@ -26,6 +26,11 @@ function parseXml(xml)
 	var xmlString = advenGameEngine.EngineCore.jqueryToString($(xml));
 	engine = new advenGameEngine.EngineCore(xmlString);
 	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
+	graphics.callbackObjectOnPress = function(element)
+	{
+		engine.eventOccurred(element.type,"","onClick",element.name);
+
+	}
 	engine.callbackOnExecuteCommand = function(message)
 	{
 		

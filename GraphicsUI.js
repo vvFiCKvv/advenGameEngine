@@ -32,8 +32,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.locationY;
 		this.container;
 		this.visibility;
+		this.update;
 	};
-	
+
 	//================================public properties================================
 	p.stage;
 	p.canvas;
@@ -45,6 +46,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.gameBackgroundUI;
 	p.logUI;
 	p.objects;
+	p.callbackObjectOnPress;//arguments: element
 	//=============================public static methods===============================
 
 	//=================================public methods=================================
@@ -60,6 +62,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			newItem.imageUrl=data;
 			newItem.container=null;
 			newItem.visibility=true;
+			newItem.update=true;
 			this.objects[0]=newItem;
 		}
 		else if(command=="addObject")
@@ -74,6 +77,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 				newItem.imageUrl=data;
 				newItem.container=null;
 				newItem.visibility=true;
+				newItem.update=true;
 				var index = this.objects.length;
 				if(index==0)
 				{
@@ -83,7 +87,13 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			else
 			{
-				
+				if(newItem.imageUrl!=data)
+				{
+					newItem.imageUrl=data;
+					this.gameUI.removeChild(newItem.container);
+					newItem.container=null;
+					newItem.update=true;
+				}
 			}
 			
 		}
@@ -102,7 +112,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			for (i in this.objects)
 			{
 				element = this.objects[i];
-				if(element.container==null)
+				if(element.update==true)
 				{
 					var image = new Image();
 					image.element = element;				
@@ -110,19 +120,32 @@ this.advenGameEngine = this.advenGameEngine||{};
 					image.p = this;
 					image.onload = this.objectOnLoad;
 					image.src = element.imageUrl;
+					element.update=false;
 				}
 				else 
 				{
 					this.objectUpdate(element);
 				}
-				if(i>2)
-				{
-					element = 0;
-				}
 			}
 		}
 		else if(command=="logAppend")
 		{
+			var container = new createjs.Container();
+//TODO: dynamic px size
+			var txt = new createjs.Text("", "20px Arial", "#FFF");
+			
+			txt.text = data;
+			txt.lineWidth = 400;
+			txt.textBaseline = "top";
+			txt.textAlign = "left";
+			txt.y = 0;
+			txt.x = 180;
+			container.addChild(txt);
+			container.timeLeft=20;
+			container.y = 50*this.logUI.children.length+50;
+			this.logUI.addChild(container);
+			
+			
 //TODO: create log ui and append the log from the data
 			//alert("message:"+data);
 		}
@@ -152,6 +175,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		image.p.objectUpdate(element);
 		image.p.gameUI.addChild(container);
 		
+		image.p.stage.update();
 	}
 
 	p.objectUpdate = function(element)
@@ -179,14 +203,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 				//container.addChild(hitArea);
 				* */
 		}
+		container.parentThis=this;
 		container.onPress = this.objectOnPress;
+		this.stage.update();
+		
 	}
 	p.objectOnPress = function(event)
 	{
 		var container = event.target;
-		var element = container.element;
-		alert("name:"+element.name);
-//callback
+		var element = container.element;		
+		container.parentThis.callbackObjectOnPress(element);
 	}
 	p.inventoryTransitionPosition=0;
 	p.inventoryTransitionCommand=""
@@ -570,6 +596,20 @@ this.advenGameEngine = this.advenGameEngine||{};
 				this.tickPercent=-1;
 			}
 			this.stage.update();
+		}
+		else
+		{
+		    for (var i=0;i<this.logUI.children.length;i++)
+		    {
+				var log = this.logUI.children[i];
+				log.timeLeft--;
+				if(log.timeLeft<=0)
+				{
+					this.logUI.removeChild(log);
+					i--;
+					this.stage.update();
+				}
+			}
 		}
 	}
 
