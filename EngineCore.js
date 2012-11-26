@@ -51,6 +51,34 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * @type jquery
 	**/
 	p.gameXml;
+	/**
+	 * callback function(message) called when a command is executed.
+	 * arguments: message is the message defined in the xml scenario.
+	 * @property callbackOnExecuteCommand
+	 * @static
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @type jquery
+	**/
+	p.callbackOnExecuteCommand;
+	/**
+	 * callback function(sceneName,objectName,imageUrl) called when an object is loaded.
+	 * arguments: scene name, object name, image url.
+	 * @property callbackOnExecuteCommand
+	 * @static
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @type jquery
+	**/
+	p.callbackObjectOnLoad;
+	/**
+	 * callback function(sceneName,objectName,imageUrl) called when an object is loaded.
+	 * arguments: scene name, image url.
+	 * @property callbackOnExecuteCommand
+	 * @static
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @type jquery
+	**/
+	p.callbackSceneOnLoad;
+	p.callbackChangeObjectVisibility;
 	
 	//=============================public static methods===============================
 	/**
@@ -85,7 +113,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 //TODO: put isRunning as attribute to runtime
 		p.isRunning = !p.isRunning;
 		if(p.isRunning)
+		{
+			this.parseScene($(this.gameXml).find("game > scenes"));
 			this._runTest();
+		}
 		return p.isRunning ;
 	}
 	/**
@@ -126,11 +157,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 			{
 				sceneName=(parentThis.gameGetCurrentScene());
 				objectName=targetNode[0];
-			}		
-
-//TODO: graphics callback to display the message.
+			}
 			if(message!="")
-				$("#output").append(message+"<br />");
+				parentThis.callbackOnExecuteCommand(message);
 			if(command=="inventoryAdd")
 			{
 				parentThis.inventoryObjectAdd(data);
@@ -153,8 +182,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			else if(command=="changeObjectVisibility")
 			{
-
+//TODO: callback
 				parentThis.objectChangeVisibility(sceneName,objectName,data);
+				parentThis.callbackChangeObjectVisibility(sceneName,objectName,data);
 			}
 			else if(command=="conditionSet")
 			{
@@ -612,7 +642,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var object = $(scene).find("objects object[name=\""+objectName+"\"]");
 		var state = $(object).find("state[name=\""+stateName+"\"]");
 //TODO: graphics callback to load the correct image.
-		image =  $(state).find("image");
+		var imageUrl =  $(state).find("image").attr("url");
+		this.callbackObjectOnLoad(sceneName,objectName,imageUrl);
+		
 		this.eventOccurred("object","","onLoad",objectName);		 
 	}
 	//===================Scene Functions====================
@@ -682,14 +714,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var state = $(scene).find("background > states > state[name=\""+stateName+"\"]");
 //TODO: graphics callback to load the correct image.
-		image =  $(state).find("image");
-		this.eventOccurred("background","","onLoad",sceneName);
+		var image =  $(state).find("image").attr("url");
+		this.callbackSceneOnLoad(sceneName,image);
+//TODO: first initialize and then try finding events
 		$(scene).find("objects > object").each(function()
 			  {	
 				  var objectName=$(this).attr("name");
 				  parentThis.objectOnLoad(sceneName,objectName);
 				  	    
 			  });
+		this.eventOccurred("background","","onLoad",sceneName);
 		 
 	}
 	//=================================private methods=================================
@@ -711,7 +745,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 	*/
 	p._initialize = function(xmlString) {
 		this.loadXmlString(xmlString);
-		this.parseScene($(this.gameXml).find("game > scenes"));
 		return this;
 	}
 	 p._runTest = function()

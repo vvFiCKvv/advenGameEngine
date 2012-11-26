@@ -23,6 +23,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 	var p = GraphicsUI.prototype;
 	//================================public static properties=========================
 
+	GraphicsUI.object = function()
+	{
+		this.name;
+		this.type;
+		this.imageUrl;
+		this.locationX;
+		this.locationY;
+		this.container;
+		this.visibility;
+	};
 	
 	//================================public properties================================
 	p.stage;
@@ -34,9 +44,150 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.gameUI;
 	p.gameBackgroundUI;
 	p.logUI;
+	p.objects;
 	//=============================public static methods===============================
-	
+
 	//=================================public methods=================================
+	
+	p.executeCommand = function (command,target,data)
+	{
+		
+		if(command=="changeBackground")
+		{
+			var newItem = new GraphicsUI.object();
+			newItem.type="background";
+			newItem.name=target;
+			newItem.imageUrl=data;
+			newItem.container=null;
+			newItem.visibility=true;
+			this.objects[0]=newItem;
+		}
+		else if(command=="addObject")
+		{
+			var newItem;
+			newItem = this.objectsGetElement(target);
+			if(newItem==null)
+			{
+				newItem = new GraphicsUI.object();
+				newItem.type="object";
+				newItem.name=target;
+				newItem.imageUrl=data;
+				newItem.container=null;
+				newItem.visibility=true;
+				var index = this.objects.length;
+				if(index==0)
+				{
+					index++;
+				}
+				this.objects[index]=newItem;
+			}
+			else
+			{
+				
+			}
+			
+		}
+		else if(command=="clearObjects")
+		{
+			this.objects=new Array();
+		}
+		else if(command=="changeObjectVisibility")
+		{
+			this.objectsGetElement(target).visibility = data;
+		}
+		else if(command=="update")
+		{
+			
+			element = null;
+			for (i in this.objects)
+			{
+				element = this.objects[i];
+				if(element.container==null)
+				{
+					var image = new Image();
+					image.element = element;				
+					element.container = new createjs.Container();
+					image.p = this;
+					image.onload = this.objectOnLoad;
+					image.src = element.imageUrl;
+				}
+				else 
+				{
+					this.objectUpdate(element);
+				}
+				if(i>2)
+				{
+					element = 0;
+				}
+			}
+		}
+		else if(command=="logAppend")
+		{
+//TODO: create log ui and append the log from the data
+			//alert("message:"+data);
+		}
+		this.stage.update();
+	}
+	p.objectsGetElement = function(name)
+	{
+		for (i in this.objects)
+			{
+				var element = this.objects[i];
+				if(element.name==name)
+				{
+					return element;
+				}
+			}
+			return null;
+	}
+	p.objectOnLoad = function(event)
+	{
+		var image = event.target;
+		var element=image.element;
+		var container = element.container;
+		bitmap = new createjs.Bitmap(image);
+		container.addChild(bitmap);
+		container.element = element;
+		
+		image.p.objectUpdate(element);
+		image.p.gameUI.addChild(container);
+		
+	}
+
+	p.objectUpdate = function(element)
+	{
+		var container = element.container;
+		container.visible = element.visibility;
+		for(var i=0;i<container.length;i++)
+		{
+		
+				bitmap.x = element.locationX;
+				bitmap.y = element.locationY;
+				bitmap.regX = bitmap.image.width/2|0;
+				bitmap.regY = bitmap.image.height/2|0;
+				bitmap.name = element.name;
+				/*
+				var hitArea = new createjs.Shape();
+				hitArea.x = bitmap.width/2;
+				hitArea.y = bitmap.height/2;
+				//hitArea.graphics.beginFill("#FF0").drawEllipse(-11,-14,24,18);
+				//hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).drawPolyStar(0,0,bitmap.height/2-15,5,0.6).closePath();
+
+				// assign the hitArea to each bitmap to use it for hit tests:
+				//bitmap.hitArea = hitArea;
+				//bitmap.mask = hitArea;
+				//container.addChild(hitArea);
+				* */
+		}
+		container.onPress = this.objectOnPress;
+	}
+	p.objectOnPress = function(event)
+	{
+		var container = event.target;
+		var element = container.element;
+		alert("name:"+element.name);
+//callback
+	}
 	p.inventoryTransitionPosition=0;
 	p.inventoryTransitionCommand=""
 	p.inventoryTransition = function(percent)
@@ -220,11 +371,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		// enabled mouse over / out events
 		this.stage.enableMouseOver(10);
 		
-		createjs.Ticker.addListener(function()
-		{
-				parentThis.stage.update();
-		});
-		
+		createjs.Ticker.addListener(this);
 		// start the tick and point it at the window so we can do some work before updating the stage:
 		createjs.Ticker.useRAF = true;
 		// if we use requestAnimationFrame, we should use a framerate that is a factor of 60:
@@ -237,6 +384,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.logUI = new createjs.Container();
 		this.stage.addChild(this.logUI);
 		
+		this.executeCommand("clearObjects");
 		
 		this._initializeGameUI();
 		this._initializeInventoryUI();
@@ -250,59 +398,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 
 	p._initializeGameUI = function()
 	{
-		// load the source image:
-		var parentThis=this;
-		var bg = new Image();
-			bg.src ="http://www.freemediagoo.com/images/reg/IMG_0783.jpg";
-			bg.onload = function(event)
-			{
-				parentThis.gameUI.addChild(new createjs.Bitmap(event.target));
-			}
-		var image = new Image();
-		image.src = "source/images/Fruit0032_SS.png";
-		image.onload = function(event)
-		{
-			var image = event.target;
-			var bitmap;
-			var container = new createjs.Container();
-			parentThis.gameUI.addChild(container);
-			
-			for(var i=0;i<10;i++)
-			{
-				bitmap = new createjs.Bitmap(image);
-				container.addChild(bitmap);
-				bitmap.x = parentThis.canvas.width * Math.random()|0;
-				bitmap.y = parentThis.canvas.height * Math.random()|0;
-				bitmap.rotation = 360 * Math.random()|0;
-				bitmap.regX = bitmap.image.width/2|0;
-				bitmap.regY = bitmap.image.height/2|0;
-				bitmap.scaleX = bitmap.scaleY = bitmap.scale = Math.random()*0.4+0.6;
-				bitmap.name = "test:"+i;
-				
-				var hitArea = new createjs.Shape();
-				hitArea.x = bitmap.width/2;
-				hitArea.y = bitmap.height/2;
-				//hitArea.graphics.beginFill("#FF0").drawEllipse(-11,-14,24,18);
-				//hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).drawPolyStar(0,0,bitmap.height/2-15,5,0.6).closePath();
-
-				// assign the hitArea to each bitmap to use it for hit tests:
-				//bitmap.hitArea = hitArea;
-				//bitmap.mask = hitArea;
-				//container.addChild(hitArea);
-				
-				bitmap.onPress = function(evt) {
-						alert("tar:"+evt.target.name);
-
-				
-				}
-			}
-			
-			
-		}
+		
 
 	}
 	p._initializeInventoryUI = function()
 	{
+		var parentThis=this;
 		this.inventorySelectUI = new createjs.Container();
 		this.inventoryUI.addChild(this.inventorySelectUI);
 		this.inventoryCompineUI = new createjs.Container();
@@ -404,13 +505,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventoryTransition(1);
 		
 		
-			
-		
-		// start the tick and point it at the window so we can do some work before updating the stage:
-		createjs.Ticker.useRAF = true;
-		// if we use requestAnimationFrame, we should use a framerate that is a factor of 60:
-		createjs.Ticker.setFPS(50);
-		
 		this.inventorySelectUI.onPress = function(event)
 		{
 			parentThis.inventoryCommand("toggleSelectUI");
@@ -434,6 +528,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	p.inventoryCommand = function(command)
 	{
+		if(this.tickPercent==-1)
+		{
+			createjs.Ticker.setFPS(50);
+			this.tickPercent = 0;
+		}
 		if(this.tickPercent!=0)
 		{
 			return false;
@@ -457,16 +556,20 @@ this.advenGameEngine = this.advenGameEngine||{};
 			return false;
 		if(command=="openCompineUI"&&this.inventoryTransitionPosition==2)
 			return false;
-		createjs.Ticker.addListener(this);
 	}
-	p.tickPercent=0;
+	p.tickPercent=-1;
 	p.tick = function()
 	{
-		this.inventoryTransition((++this.tickPercent)/20);
-		if(this.tickPercent==20)
+		
+		if(this.tickPercent!=-1)
 		{
-			createjs.Ticker.removeListener(this)
-			this.tickPercent=0;
+			this.inventoryTransition((++this.tickPercent)/20);
+			if(this.tickPercent==20)
+			{
+				createjs.Ticker.setFPS(10);
+				this.tickPercent=-1;
+			}
+			this.stage.update();
 		}
 	}
 

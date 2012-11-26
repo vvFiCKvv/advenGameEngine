@@ -51,7 +51,7 @@
 						</action>
 					</state>
 					<state name="fullLight">
-						<image url="Room_01_wall01_Full_Light.jpg"></image>
+						<image url="Room_01_wall01_Full_Light1.jpg"></image>
 						<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
 						<action event="onLoad">
 							<command name="changeObjectVisibility" target="all" data="true">
@@ -72,7 +72,7 @@
 					<location></location>
 					<states>
 						<state name="opened">
-							<image url="irtati_01_open.jpg"></image>
+							<image url="sirtatisirtati_01_open.gif"></image>
 							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
 							<action event="onClick">
 								<command name="changeObjectState" target="this" data="closed">
@@ -81,7 +81,7 @@
 							</action>
 						</state>
 						<state name="openedFirstTime">
-							<image url="sirtati_01_openFirstTime.jpg"></image>
+							<image url="sirtatisirtati_01_open.gif"></image>
 							<!-- Possible Actions, an action may require some conditions or the use of a specific item -->
 							<action event="onLoad">	
 								<command name="play" data="video1_01">
@@ -96,7 +96,7 @@
 							</action>							
 						</state>
 						<state name="semiOpen">
-							<image url="sirtati_01_semiOpen.jpg"></image>
+							<image url="sirtati_01_semiOpen.gif"></image>
 							<action event="onLoad">
 								<requires>
 									<condition name="condition_FirstTimeShowed"></condition>
@@ -125,7 +125,7 @@
 							</action>			
 						</state>
 						<state name="closed" default="true">
-							<image url="sirtati_01_closed.jpg"></image>
+							<image url="sirtati_01_closed.gif"></image>
 							<action event="onClick">
 								<requires>
 									<condition name="condition_keyInserted" not="true"></condition>

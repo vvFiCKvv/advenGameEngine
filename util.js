@@ -25,12 +25,38 @@ function parseXml(xml)
 	
 	var xmlString = advenGameEngine.EngineCore.jqueryToString($(xml));
 	engine = new advenGameEngine.EngineCore(xmlString);
-	//	engine.loadXmlString(xmlString);
-	//engine.runPause();
-	
 	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
-	//graphics.runTest01();
+	engine.callbackOnExecuteCommand = function(message)
+	{
+		
+		graphics.executeCommand("logAppend","",message);
+		graphics.executeCommand("update");
+	}
+	engine.callbackObjectOnLoad = function(sceneName, objectName, imageUrl)
+	{
+		graphics.executeCommand("addObject",objectName,"source/images/testSceen/"+imageUrl);
+		graphics.executeCommand("update");
+		
+	}
+	engine.callbackSceneOnLoad = function(sceneName, imageUrl)
+	{
+		graphics.executeCommand("changeBackground",sceneName,"source/images/testSceen/"+imageUrl);
+		graphics.executeCommand("update");
+		
+	}
+	engine.callbackChangeObjectVisibility = function(sceneName, objectName,status)
+	{
+		graphics.executeCommand("changeObjectVisibility",objectName,status);
+		graphics.executeCommand("update");
+	}
+	//	engine.loadXmlString(xmlString);
+	engine.runPause();
 	
+	//graphics.runTest01();
+	/*graphics.executeCommand("changeBackground","bg","source/images/testSceen/Room_01_wall01_Full_Light1.jpg");
+	graphics.executeCommand("addObject","name","source/images/testSceen/sirtati_01_closed.gif");
+	graphics.executeCommand("update");
+	*/
 }
 
 
