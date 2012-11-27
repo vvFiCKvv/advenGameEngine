@@ -79,6 +79,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.callbackSceneOnLoad;
 	p.callbackChangeObjectVisibility;
+	p.callbackInventoryObjectAdd;
+	p.callbackInventoryObjectRemove;
 	
 	//=============================public static methods===============================
 	/**
@@ -162,10 +164,15 @@ this.advenGameEngine = this.advenGameEngine||{};
 				parentThis.callbackOnExecuteCommand(message);
 			if(command=="inventoryAdd")
 			{
-				parentThis.inventoryObjectAdd(data);
+//TODO:Callback inventoryAdd
+				var imageUrl = parentThis.inventoryObjectGetImage(data);
+				parentThis.callbackInventoryObjectAdd(data,imageUrl);
+				parentThis.inventoryObjectAdd(data)
 			}
 			else if(command=="inventoryRemove")
 			{
+//TODO:Callback inventoryRemove
+				parentThis.callbackInventoryObjectRemove(data);
 				parentThis.inventoryObjectRemove(data);
 			}
 			else if(command=="changeObjectState")
@@ -182,7 +189,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			else if(command=="changeObjectVisibility")
 			{
-//TODO: callback
 				parentThis.objectChangeVisibility(sceneName,objectName,data);
 				parentThis.callbackChangeObjectVisibility(sceneName,objectName,data);
 			}
@@ -202,7 +208,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			else if(command=="codeCheck")
 			{
-//TODO: callback
+//TODO: callback codeCheck
 			}
 		});
 //TODO:Add xml prototype for variables
@@ -641,7 +647,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var object = $(scene).find("objects object[name=\""+objectName+"\"]");
 		var state = $(object).find("state[name=\""+stateName+"\"]");
-//TODO: graphics callback to load the correct image.
 		var imageUrl =  $(state).find("image").attr("url");
 		this.callbackObjectOnLoad(sceneName,objectName,imageUrl);
 		
@@ -713,7 +718,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var state = $(scene).find("background > states > state[name=\""+stateName+"\"]");
-//TODO: graphics callback to load the correct image.
 		var image =  $(state).find("image").attr("url");
 		this.callbackSceneOnLoad(sceneName,image);
 //TODO: first initialize and then try finding events
@@ -747,6 +751,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.loadXmlString(xmlString);
 		return this;
 	}
+	//TODO: get scene/game images to preload
 	 p._runTest = function()
 	{
 

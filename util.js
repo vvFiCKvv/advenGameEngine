@@ -19,13 +19,20 @@ function init()
 	return this;
 	
 }
+//TODO: Split game xml to multiple files, one per scene
 function parseXml(xml)
 {
-	//engine = new advenGameEngine.EngineCore();
-	
 	var xmlString = advenGameEngine.EngineCore.jqueryToString($(xml));
 	engine = new advenGameEngine.EngineCore(xmlString);
 	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
+	engine.callbackInventoryObjectAdd = function(name,imageUrl)
+	{
+			graphics.executeCommand("addInventoryObject",name,"source/images/testSceen/"+imageUrl);
+	}
+	engine.callbackInventoryObjectRemove = function(name)
+	{
+			graphics.executeCommand("removeInventoryObject",name);
+	}
 	graphics.callbackObjectOnPress = function(element)
 	{
 		engine.eventOccurred(element.type,"","onClick",element.name);

@@ -163,7 +163,7 @@
 		<objects>
 			<!-- an item may be disassembly to a set of items -->
 			<item name="flashLight">
-				<image url="flashLight.jpg"></image>
+				<image url="flashLight.png"></image>
 				<action event="onFocus">
 					<command>
 						<message>it works!</message>
@@ -172,6 +172,22 @@
 				<action event="onClick">
 					<command name="popuupImage" data="flashLightHidenMessage.jpg">
 						<message>Wow it has a hiden message!</message>
+					</command>
+				</action>
+			</item>
+			<item name="screwDriver">
+			   <image url="screwDriver.gif"></image>
+			   <action event="onFocus">
+					<command>
+						<message>a screwdriver!</message>
+					</command>
+				</action>
+			</item>
+			<item name="knife">
+			   <image url="screwDriver.gif"></image>
+			   <action event="onFocus">
+					<command>
+						<message>a screwdriver!</message>
 					</command>
 				</action>
 			</item>

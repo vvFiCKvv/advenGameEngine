@@ -56,14 +56,30 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		if(command=="changeBackground")
 		{
-			var newItem = new GraphicsUI.object();
-			newItem.type="background";
-			newItem.name=target;
-			newItem.imageUrl=data;
-			newItem.container=null;
-			newItem.visibility=true;
-			newItem.update=true;
-			this.objects[0]=newItem;
+			var newItem;
+			newItem = this.objectsGetElement(target);
+			if(newItem==null)
+			{
+				newItem = new GraphicsUI.object();
+				newItem.type="background";
+				newItem.name=target;
+				newItem.imageUrl=data;
+				newItem.container=null;
+				newItem.visibility=true;
+				newItem.update=true;
+				var index = this.objects.length;
+				this.objects[index]=newItem;
+			}
+			else
+			{
+			if(newItem.imageUrl!=data)
+				{
+					newItem.imageUrl=data;
+					this.gameUI.removeChild(newItem.container);
+					newItem.container=null;
+					newItem.update=true;
+				}
+			}
 		}
 		else if(command=="addObject")
 		{
@@ -79,10 +95,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 				newItem.visibility=true;
 				newItem.update=true;
 				var index = this.objects.length;
-				if(index==0)
-				{
-					index++;
-				}
+				var index = this.objects.length;
 				this.objects[index]=newItem;
 			}
 			else
@@ -97,9 +110,47 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			
 		}
+		//TODO: Implement the commands: addInventoryObject, delInventoryObject
+		else if(command=="addInventoryObject")
+		{
+			//return;
+			var newItem;
+			newItem = this.objectsGetElement(target);
+			if(newItem==null)
+			{
+				newItem = new GraphicsUI.object();
+				newItem.type="inventory";
+				newItem.name=target;
+
+					
+				newItem.imageUrl=data;
+				newItem.container=null;
+				newItem.visibility=true;
+				newItem.update=true;
+				var index = this.objects.length;
+				this.objects[index]=newItem;
+			}
+			else
+			{
+				if(newItem.imageUrl!=data)
+				{
+					
+					newItem.imageUrl=data;
+					this.gameUI.removeChild(newItem.container);
+					newItem.container=null;
+					newItem.update=true;
+				}
+			}
+		}
+		else if(command=="removeInventoryObject")
+		{
+			var element = this.objectsGetElement(target);
+//TODO: Remove element from objects and containers.
+		}
 		else if(command=="clearObjects")
 		{
 			this.objects=new Array();
+//TODO: Remove from containers.
 		}
 		else if(command=="changeObjectVisibility")
 		{
@@ -119,6 +170,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 					element.container = new createjs.Container();
 					image.p = this;
 					image.onload = this.objectOnLoad;
+//TODO: add on error handler 
+					//image.onerror=
 					image.src = element.imageUrl;
 					element.update=false;
 				}
@@ -165,16 +218,34 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	p.objectOnLoad = function(event)
 	{
+//TODO: stretch image to correct dimensions
+//TODO: preload images
 		var image = event.target;
 		var element=image.element;
 		var container = element.container;
 		bitmap = new createjs.Bitmap(image);
+		bitmap.snapToPixel = true;
+		
 		container.addChild(bitmap);
 		container.element = element;
-		
-		image.p.objectUpdate(element);
-		image.p.gameUI.addChild(container);
-		
+		bitmap.width = image.width;
+		bitmap.height = image.height;
+		var thisParent=image.p;
+		thisParent.objectUpdate(element);
+		if(element.type=="object")
+		{
+			thisParent.gameUI.addChild(container);
+		}
+		else if(element.type=="background")
+		{
+			thisParent.gameUI.addChildAt(container,0);
+		}
+		else if (element.type=="inventory")
+		{
+			container.visible=false;
+			thisParent.inventorySelectUI.Elements.addChild(container);
+		}
+//TODO: Correct updates		
 		image.p.stage.update();
 	}
 
@@ -182,14 +253,16 @@ this.advenGameEngine = this.advenGameEngine||{};
 	{
 		var container = element.container;
 		container.visible = element.visibility;
-		for(var i=0;i<container.length;i++)
+		for(var i=0;i<container.children.length;i++)
 		{
-		
+				var bitmap = container.children;
+				if(bitmap==null || bitmap.image==null)
+					break;
 				bitmap.x = element.locationX;
 				bitmap.y = element.locationY;
-				bitmap.regX = bitmap.image.width/2|0;
-				bitmap.regY = bitmap.image.height/2|0;
-				bitmap.name = element.name;
+				//bitmap.regX = bitmap.image.width/2|0;
+				//bitmap.regY = bitmap.image.height/2|0;
+				//bitmap.name = element.name;
 				/*
 				var hitArea = new createjs.Shape();
 				hitArea.x = bitmap.width/2;
@@ -214,6 +287,55 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var element = container.element;		
 		container.parentThis.callbackObjectOnPress(element);
 	}
+	p.inventorySelectUIOrganize = function()
+	{
+		var elements = this.inventorySelectUI.Elements;
+		var length = elements.children.length;
+		var width=elements.width;
+		var height=elements.height;
+//TODO:Calculating dynamical
+		var countX=2;
+		var countY=4;
+		var h=height/countY;
+		var w=width/countX;
+		for(var i=0;i<length;i++)
+		{
+			var container = elements.children[i];
+			var bitmap = container.children[0];
+			container.visible=true;
+			container.scaleX = w/bitmap.width;
+			container.scaleY = h/bitmap.height;
+			container.x = (i%countX)*w;
+			container.y = Math.floor(i/countX)*h;
+			
+			var hitArea = new createjs.Shape();
+			/*hitArea.x = container.x
+			hitArea.y = container.y;*/
+//TODO: correct hitArrea for transparent objects
+			hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).beginFill("#FFF").drawRect(container.x,container.y,w,h);
+			container.hitArea=hitArea;
+			container.onPress=this.inventorySelectOnPress;
+		}		
+	}
+	p.inventorySelectOnPress = function(event)
+	{
+		var container = event.target;
+		var element = container.element;
+		var parentThis = container.parentThis;
+		var bitmap = container.children[0];
+		
+		container=parentThis.inventorySelectUI.Selected;
+		
+		container.visible=true;
+		var h=container.height;
+		var w=container.width;
+		container.scaleX = w/bitmap.width;
+		container.scaleY = h/bitmap.height;
+		container.removeAllChildren();
+		container.addChild(bitmap.clone());
+		parentThis.stage.update();
+//TODO: parentThis.callback(element);		
+	}
 	p.inventoryTransitionPosition=0;
 	p.inventoryTransitionCommand=""
 	p.inventoryTransition = function(percent)
@@ -223,6 +345,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		if(command=="openSelectUI")
 		{
+			this.inventorySelectUIOrganize();
 			position = percent;
 		}else if(command=="closeSelectUI")
 		{
@@ -405,16 +528,17 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		this.gameUI = new  createjs.Container();
 		this.stage.addChild(this.gameUI);
-		this.inventoryUI = new createjs.Container();
-		this.stage.addChild(this.inventoryUI);
 		this.logUI = new createjs.Container();
 		this.stage.addChild(this.logUI);
+		this.inventoryUI = new createjs.Container();
+		this.stage.addChild(this.inventoryUI);
 		
 		this.executeCommand("clearObjects");
 		
 		this._initializeGameUI();
-		this._initializeInventoryUI();
 		this._initializeGameLogUI();
+		this._initializeInventoryUI();
+
 		
 		
 
@@ -474,6 +598,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		bg.alpha = 0.7;
 		this.inventoryCompineUI.addChildAt(bg);
 		
+		
 		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
 			txt.text = "Compine Objects";
 			txt.lineWidth = w;
@@ -497,7 +622,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var x4=0;
 		var y4=y3;
 		
-
 		var bg = new createjs.Shape();
 		var g = bg.graphics;
 		g.beginLinearGradientFill(["#228","#000"], [0.1, 1], 0, 0, x2, 0);
@@ -511,7 +635,42 @@ this.advenGameEngine = this.advenGameEngine||{};
 		g.lineTo(x4,y4);
 		g.closePath();
 		bg.alpha = 0.7;
-		this.inventorySelectUI.addChildAt(bg);
+		this.inventorySelectUI.addChild(bg);
+		
+		var width = xLeft-2*delimiter;
+		var height = y1 - 2*delimiter;
+		var x = delimiter;
+		var y=1.5*delimiter;
+		this.inventorySelectUI.Elements = new createjs.Container();
+		this.inventorySelectUI.Elements.width=width;
+		this.inventorySelectUI.Elements.x = x
+		this.inventorySelectUI.Elements.height=height;
+		this.inventorySelectUI.Elements.y= y
+
+		this.inventorySelectUI.addChild(this.inventorySelectUI.Elements);
+
+		var bg = new createjs.Shape();
+		bg.x=x-delimiter/4;
+		bg.y=y-delimiter/4;
+		width+=delimiter/2;
+		height+=delimiter/2;
+		var g = bg.graphics;
+		g.beginFill("#F22");
+		g.setStrokeStyle(delimiter/4).beginStroke("#2FF").drawRoundRectComplex(0,0,width,height,cornerRatio/4,cornerRatio/4,cornerRatio/4,cornerRatio/4);
+		bg.alpha = 0.1;
+		this.inventorySelectUI.addChild(bg);
+		
+		var x=x1+delimiter/2;
+		var y=x2+delimiter/2;
+		var w=xSplit-delimiter;
+		var h=xSplit-delimiter;
+		var container = new createjs.Container();
+		container.x=x;
+		container.y=y;
+		container.width=w;
+		container.height=h;
+		this.inventorySelectUI.Selected=container;
+		this.inventorySelectUI.addChild(container);
 		
 		var y=xSplit+delimiter;
 		var h=this.canvas.height-xSplit-delimiter;
@@ -531,8 +690,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventoryTransition(1);
 		
 		
-		this.inventorySelectUI.onPress = function(event)
-		{
+		this.inventorySelectUI.children[0].onPress = function(event)
+		{		
 			parentThis.inventoryCommand("toggleSelectUI");
 		}
 		
