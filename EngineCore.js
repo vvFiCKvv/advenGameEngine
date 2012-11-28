@@ -760,46 +760,46 @@ this.advenGameEngine = this.advenGameEngine||{};
 		EngineCore._xmlFindConsoleLog(xml,"runtime");
 		
 					
-		this.inventoryObjectAdd("flashLightBroken");
-		this.inventoryObjectAdd("battery");
+		this.executeCommand("","inventoryAdd","flashLightBroken");
+		this.executeCommand("","inventoryAdd","battery");
 		
 		
 		//this.gameChangeScene("Room_01_wall01");
 		
 		this.conditionSet("condition_batteryFull",true);
 		
-		this.eventOccurred("inventory","","onSelect","battery");
-		this.eventOccurred("inventory","","onSelect","flashLightBroken");
-		this.eventOccurred("inventory","","onInteract","");
+		//this.eventOccurred("inventory","","onSelect","battery");
+		//this.eventOccurred("inventory","","onSelect","flashLightBroken");
+		//this.eventOccurred("inventory","","onInteract","");
 		
-		this.eventOccurred("inventory","","onSelect","flashLight");
-		this.eventOccurred("background","","onClick","");
+		//this.eventOccurred("inventory","","onSelect","flashLight");
+		//this.eventOccurred("background","","onClick","");
 		
-		this.eventOccurred("background","","onClick","");
+		//this.eventOccurred("background","","onClick","");
 		
-		this.inventoryObjectAdd("key");
-		this.inventoryObjectSelect("key");
+		this.executeCommand("","inventoryAdd","key");
+		//this.inventoryObjectSelect("key");
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
 		
 		
 		this.conditionSet("condition_passwd",true);
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
-		this.inventoryObjectAdd("screwDriver");
-		this.eventOccurred("inventory","","onSelect","screwDriver");
+		this.executeCommand("","inventoryAdd","screwDriver");
+		//this.eventOccurred("inventory","","onSelect","screwDriver");
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
-		this.eventOccurred("object","","onClick","sirtati_01");
+		//this.eventOccurred("object","","onClick","sirtati_01");
 		
 		
 		//this.executeCommand("sirtati_01","changeObjectState","openedFirstTime","changing state...");

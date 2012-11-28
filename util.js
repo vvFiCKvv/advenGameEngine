@@ -28,6 +28,7 @@ function parseXml(xml)
 	engine.callbackInventoryObjectAdd = function(name,imageUrl)
 	{
 			graphics.executeCommand("addInventoryObject",name,"source/images/testSceen/"+imageUrl);
+			graphics.executeCommand("update");
 	}
 	engine.callbackInventoryObjectRemove = function(name)
 	{
@@ -37,6 +38,16 @@ function parseXml(xml)
 	{
 		engine.eventOccurred(element.type,"","onClick",element.name);
 
+	}
+	graphics.callbackInventorySelect = function(element)
+	{
+		engine.eventOccurred(element.type,"","onDeselect","all");
+		engine.eventOccurred(element.type,"","onSelect",element.name);
+	}
+	graphics.callbackInventoryCompine = function(element)
+	{
+		engine.eventOccurred(element.type,"","onSelect",element.name);
+		engine.eventOccurred(element.type,"","onInteract","");
 	}
 	engine.callbackOnExecuteCommand = function(message)
 	{

@@ -47,6 +47,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.logUI;
 	p.objects;
 	p.callbackObjectOnPress;//arguments: element
+	p.callbackInventorySelect;//arguments: element
+	p.callbackInventoryCompine;
+
 	//=============================public static methods===============================
 
 	//=================================public methods=================================
@@ -145,7 +148,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		else if(command=="removeInventoryObject")
 		{
 			var element = this.objectsGetElement(target);
-//TODO: Remove element from objects and containers.
+			
+//TODO: Remove element from objects and containers and inventorySelectUI.Elements.
+			this.inventorySelectUIOrganize(element);
 		}
 		else if(command=="clearObjects")
 		{
@@ -154,7 +159,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		else if(command=="changeObjectVisibility")
 		{
-			this.objectsGetElement(target).visibility = data;
+			var element = this.objectsGetElement(target);
+			element.visibility = (data=="true");
+			element.update=false;
 		}
 		else if(command=="update")
 		{
@@ -244,6 +251,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			container.visible=false;
 			thisParent.inventorySelectUI.Elements.addChild(container);
+			thisParent.inventorySelectUIOrganize();
 		}
 //TODO: Correct updates		
 		image.p.stage.update();
@@ -315,7 +323,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 			hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).beginFill("#FFF").drawRect(container.x,container.y,w,h);
 			container.hitArea=hitArea;
 			container.onPress=this.inventorySelectOnPress;
-		}		
+		}
+//TODO: reorganize selected viewUI combineUI
 	}
 	p.inventorySelectOnPress = function(event)
 	{
@@ -332,9 +341,72 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.scaleX = w/bitmap.width;
 		container.scaleY = h/bitmap.height;
 		container.removeAllChildren();
+		container.element = element;
 		container.addChild(bitmap.clone());
+		
+		container=parentThis.inventoryViewUI.Viewer;
+		var h=container.height;
+		var w=container.width;
+		container.element = element;
+		container.scaleX = w/bitmap.width;
+		container.scaleY = h/bitmap.height;
+		container.removeAllChildren();
+		container.addChild(bitmap.clone());
+		
+		parentThis.inventoryCompineUIOrganize(element);
+	
 		parentThis.stage.update();
-//TODO: parentThis.callback(element);		
+		parentThis.callbackInventorySelect(element);
+
+	}
+	p.inventoryCompineUIOrganize = function(selectedElement)
+	{
+		var elements = this.inventorySelectUI.Elements;
+		var length = elements.children.length;
+		var width=this.inventoryCompineUI.Elements.width;
+		var height=this.inventoryCompineUI.Elements.height;
+//TODO:Calculating dynamical
+		var countX=3;
+		var countY=4;
+		var h=height/countY;
+		var w=width/countX;
+		this.inventoryCompineUI.Elements.removeAllChildren();
+		for(var i=0;i<length;i++)
+		{
+			var container = elements.children[i];
+			var element =  container.element;
+			var bitmap = container.children[0];
+			if(selectedElement.name==element.name)
+			{
+				continue;
+			}
+			container = new createjs.Container();
+			container.element = element;
+			this.inventoryCompineUI.Elements.addChild(container);
+			container.scaleX = w/bitmap.width;
+			container.scaleY = h/bitmap.height;
+			container.addChild(bitmap.clone());
+			
+			container.x = (i%countX)*w;
+			container.y = Math.floor(i/countX)*h;
+			
+			var hitArea = new createjs.Shape();
+			/*hitArea.x = container.x
+			hitArea.y = container.y;*/
+//TODO: correct hitArrea for transparent objects
+			hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).beginFill("#FFF").drawRect(container.x,container.y,w,h);
+			container.hitArea=hitArea;
+			container.parentThis=this;
+			
+			container.onPress=this.inventoryCombineOnPress;
+		}		
+	}
+	p.inventoryCombineOnPress = function(event)
+	{
+		var container = event.target;
+		var element = container.element;
+		var parentThis = container.parentThis;
+		parentThis.callbackInventoryCompine(element);
 	}
 	p.inventoryTransitionPosition=0;
 	p.inventoryTransitionCommand=""
@@ -430,76 +502,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		
 	}
-	p.runTest01 = function()
-	{
-		// load the source image:
-		var parentThis=this;
-		var image = new Image();
-		image.src = "source/images/Fruit0032_SS.png";
-		image.onload = function(event)
-		{
-			var image = event.target;
-			var bitmap;
-			var container = new createjs.Container();
-			parentThis.stage.addChild(container);
-			
-			bitmap = new createjs.Bitmap(image);
-			container.addChild(bitmap);
-			bitmap.x = parentThis.canvas.width * Math.random()|0;
-			bitmap.y = parentThis.canvas.height * Math.random()|0;
-			bitmap.rotation = 360 * Math.random()|0;
-			bitmap.regX = bitmap.image.width/2|0;
-			bitmap.regY = bitmap.image.height/2|0;
-			bitmap.scaleX = bitmap.scaleY = bitmap.scale = Math.random()*0.4+0.6;
-			bitmap.name = "test22";
-			
-			var hitArea = new createjs.Shape();
-			hitArea.x = bitmap.width/2;
-			hitArea.y = bitmap.height/2;
-			//hitArea.graphics.beginFill("#FF0").drawEllipse(-11,-14,24,18);
-			//hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).drawPolyStar(0,0,bitmap.height/2-15,5,0.6).closePath();
-
-			// assign the hitArea to each bitmap to use it for hit tests:
-			//bitmap.hitArea = hitArea;
-			//bitmap.mask = hitArea;
-			//container.addChild(hitArea);
-			bitmap.onPress = function(evt) {
-					alert("tar:"+evt.target.name);
-							
-			
-			}
-			
-			container2 = new createjs.Container();
-			container.addChild(container2);
-			
-			var txt = new createjs.Text("", "17px Arial", "#FFF");
-			txt.text = "This text is rendered in canvas using the Text Object:\n\n";
-			txt.text += "The API is loosely based on Flash's display list, and should be easy to pick up for both JS and AS3 developers. The key classes are:\n\n";
-			txt.text += "DisplayObject\nAbstract base class for all display elements in Easel. Exposes all of the display properties (ex. x, y, rotation, scaleX, scaleY, alpha, shadow, etc) that are common to all display objects.\n\n"
-			txt.text += "Stage\nThe root level display container for display elements. Each time tick() is called on Stage, it will update and render the display list to its associated canvas.\n\n";
-			txt.text += "Container\nA nestable display container, which lets you aggregate display objects and manipulate them as a group.\n\n";
-			txt.text += "Text\nRenders text in the context of the display list."
-
-			txt.lineWidth = 600;
-			txt.textBaseline = "top";
-			txt.textAlign = "left";
-			txt.y = 50;
-			txt.x = 30;
-			container2.addChild(txt);		
-					
-			var pad = 10;
-			var bg = new createjs.Shape();
-			bg.graphics.beginLinearGradientFill(["#000","#228"], [0.1, 1], 0, 20, 0, 320).setStrokeStyle(8).beginStroke("#F00").drawRoundRectComplex(txt.x-pad, txt.y-pad, txt.lineWidth+pad*2, txt.getMeasuredHeight()+pad*2,0,0,0,0);
-			bg.alpha = 0.7;
-			container2.addChildAt(bg);
-			//container.update();
-			
-			
-			
-			
-		}
-	}
-	
 	//=================================private methods=================================
 	//================initializing Functions==================
 		/**
@@ -578,6 +580,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		bg.alpha = 0.7;
 		this.inventoryViewUI.addChildAt(bg);
 		
+
+
+		
 		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
 		txt.text = "Object Details";
 		txt.lineWidth = w;
@@ -586,6 +591,31 @@ this.advenGameEngine = this.advenGameEngine||{};
 		txt.y = y+0.8*h;
 		txt.x = x+w/2;
 		this.inventoryViewUI.addChild(txt);
+		
+		var width = w-2*delimiter;
+		var height = 0.8*h - 2*delimiter;
+		
+		x+=delimiter;
+		y+=delimiter;		
+
+		this.inventoryViewUI.Viewer = new createjs.Container();
+		this.inventoryViewUI.Viewer.width=width;
+		this.inventoryViewUI.Viewer.x = x
+		this.inventoryViewUI.Viewer.height=height;
+		this.inventoryViewUI.Viewer.y= y
+
+		this.inventoryViewUI.addChild(this.inventoryViewUI.Viewer);
+
+		var bg = new createjs.Shape();
+		bg.x=x-delimiter/4;
+		bg.y=y-delimiter/4;
+		width+=delimiter/2;
+		height+=delimiter/2;
+		var g = bg.graphics;
+		g.beginFill("#F22");
+		g.setStrokeStyle(delimiter/4).beginStroke("#2FF").drawRoundRectComplex(0,0,width,height,cornerRatio/4,cornerRatio/4,cornerRatio/4,cornerRatio/4);
+		bg.alpha = 0.1;
+		this.inventoryViewUI.addChild(bg);
 		
 		var x=xRight+delimiter/2;
 		var y=xSplit+delimiter;
@@ -600,13 +630,39 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		
 		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
-			txt.text = "Compine Objects";
+			txt.text = "Combine Selected";
 			txt.lineWidth = w;
 			txt.textBaseline = "top";
 			txt.textAlign = "center";
 			txt.y = 1.1*y;
 			txt.x = x+w/2;
 		this.inventoryCompineUI.addChild(txt);
+		
+
+		var width = w-2*delimiter;
+		var height = 0.8*h - 2*delimiter;
+		
+		x+=delimiter;
+		y+=delimiter+0.2*h;
+		
+		this.inventoryCompineUI.Elements = new createjs.Container();
+		this.inventoryCompineUI.Elements.width=width;
+		this.inventoryCompineUI.Elements.x = x
+		this.inventoryCompineUI.Elements.height=height;
+		this.inventoryCompineUI.Elements.y= y
+
+		this.inventoryCompineUI.addChild(this.inventoryCompineUI.Elements);
+
+		var bg = new createjs.Shape();
+		bg.x=x-delimiter/4;
+		bg.y=y-delimiter/4;
+		width+=delimiter/2;
+		height+=delimiter/2;
+		var g = bg.graphics;
+		g.beginFill("#F22");
+		g.setStrokeStyle(delimiter/4).beginStroke("#2FF").drawRoundRectComplex(0,0,width,height,cornerRatio/4,cornerRatio/4,cornerRatio/4,cornerRatio/4);
+		bg.alpha = 0.1;
+		this.inventoryCompineUI.addChild(bg);
 		
 		
 		
@@ -695,11 +751,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 			parentThis.inventoryCommand("toggleSelectUI");
 		}
 		
-		this.inventoryCompineUI.onPress = function(event)
+		this.inventoryCompineUI.children[0].onPress = function(event)
 		{
 			parentThis.inventoryCommand("openCompineUI");
 		}
-		this.inventoryViewUI.onPress = function(event)
+		this.inventoryViewUI.children[0].onPress = function(event)
 		{
 			parentThis.inventoryCommand("openViewUI");
 		}

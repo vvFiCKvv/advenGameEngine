@@ -192,7 +192,7 @@
 				</action>
 			</item>
 			<item name="flashLightBroken">
-			   <image url="flashLightBroken.jpg"></image>
+			   <image url="flashLightBroken.gif"></image>
 			   <action event="onFocus">
 					<command>
 						<message>its broken, i can fix it with a battery!</message>
@@ -200,7 +200,7 @@
 				</action>
 			</item>
 			<item name="battery">
-			   <image url="battery.jpg"></image>
+			   <image url="battery.gif"></image>
 			   <action event="onFocus">
 					<command>
 						<message>a battery,?i wanter where i can use it!</message>
@@ -208,7 +208,7 @@
 				</action>
 			</item>
 			<item name="screwDriver">
-			   <image url="screwDriver.jpg"></image>
+			   <image url="screwDriver.gif"></image>
 			   <action event="onFocus">
 					<command>
 						<message>its a screw driver!</message>
