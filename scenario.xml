@@ -164,7 +164,7 @@
 			<!-- an item may be disassembly to a set of items -->
 			<item name="flashLight">
 				<image url="flashLight.png"></image>
-				<action event="onFocus">
+				<action event="onClick">
 					<command>
 						<message>it works!</message>
 					</command>
@@ -177,7 +177,7 @@
 			</item>
 			<item name="screwDriver">
 			   <image url="screwDriver.gif"></image>
-			   <action event="onFocus">
+			   <action event="onClick">
 					<command>
 						<message>a screwdriver!</message>
 					</command>
@@ -185,7 +185,7 @@
 			</item>
 			<item name="knife">
 			   <image url="screwDriver.gif"></image>
-			   <action event="onFocus">
+			   <action event="onClick">
 					<command>
 						<message>a screwdriver!</message>
 					</command>
@@ -193,7 +193,7 @@
 			</item>
 			<item name="flashLightBroken">
 			   <image url="flashLightBroken.gif"></image>
-			   <action event="onFocus">
+			   <action event="onClick">
 					<command>
 						<message>its broken, i can fix it with a battery!</message>
 					</command>
@@ -201,7 +201,7 @@
 			</item>
 			<item name="battery">
 			   <image url="battery.gif"></image>
-			   <action event="onFocus">
+			   <action event="onClick">
 					<command>
 						<message>a battery,?i wanter where i can use it!</message>
 					</command>
@@ -209,7 +209,7 @@
 			</item>
 			<item name="screwDriver">
 			   <image url="screwDriver.gif"></image>
-			   <action event="onFocus">
+			   <action event="onClick">
 					<command>
 						<message>its a screw driver!</message>
 					</command>
@@ -222,13 +222,13 @@
 					<item name="battery"></item>
 					<condition name="condition_batteryFull"></condition>
 				</requires>
-					<command name="inventoryAdd" data="flashLight">
-							<message>combined flash light with battery, flash light works.</message>
-							<message>combined!, yeah!</message>
-					</command>
 					<command name="inventoryRemove" data="flashLightBroken"></command>
 					<command name="inventoryRemove" data="battery"></command>
 					<command name="conditionSet"><data name="conditionTransformComplete" status="true"></data></command>
+					<command name="inventoryAdd" data="flashLight">
+						<message>combined flash light with battery, flash light works.</message>
+						<message>combined!, yeah!</message>
+					</command>
 			</action>
 		</objects>
 	</inventory>

@@ -164,14 +164,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 				parentThis.callbackOnExecuteCommand(message);
 			if(command=="inventoryAdd")
 			{
-//TODO:Callback inventoryAdd
 				var imageUrl = parentThis.inventoryObjectGetImage(data);
 				parentThis.callbackInventoryObjectAdd(data,imageUrl);
 				parentThis.inventoryObjectAdd(data)
 			}
 			else if(command=="inventoryRemove")
 			{
-//TODO:Callback inventoryRemove
 				parentThis.callbackInventoryObjectRemove(data);
 				parentThis.inventoryObjectRemove(data);
 			}
@@ -212,7 +210,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 		});
 //TODO:Add xml prototype for variables
-		//callback(message)
 	}
 
 	/**
@@ -809,7 +806,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		EngineCore._xmlFindConsoleLog(xml,"runtime");
 		
 		//prints image url for each inventory items.
-		parentThis = this;
+		//parentThis = this;
 		/*$("#output").append("<br />===Inventory===<br />");
 		this.inventoryGetItems(function(name){
 			$("#output").append("item: "+name+" image: "+parentThis.inventoryObjectGetImage(name) + "<br />");

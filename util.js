@@ -48,6 +48,7 @@ function parseXml(xml)
 	{
 		engine.eventOccurred(element.type,"","onSelect",element.name);
 		engine.eventOccurred(element.type,"","onInteract","");
+		engine.eventOccurred(element.type,"","onDeselect",element.name);
 	}
 	engine.callbackOnExecuteCommand = function(message)
 	{

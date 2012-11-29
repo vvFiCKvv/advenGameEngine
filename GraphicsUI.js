@@ -113,7 +113,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			
 		}
-		//TODO: Implement the commands: addInventoryObject, delInventoryObject
 		else if(command=="addInventoryObject")
 		{
 			//return;
@@ -148,14 +147,34 @@ this.advenGameEngine = this.advenGameEngine||{};
 		else if(command=="removeInventoryObject")
 		{
 			var element = this.objectsGetElement(target);
-			
-//TODO: Remove element from objects and containers and inventorySelectUI.Elements.
+			for(var i=0; i<this.objects.length; i++) 
+			{
+				if(this.objects[i] === element) 
+				{
+					this.objects.splice(i, 1);
+					break;
+				}
+			}
+			for(var i=0; i<this.inventorySelectUI.Elements.children.length; i++) 
+			{
+				if(this.inventorySelectUI.Elements.children[i].element === element) 
+				{
+					this.inventorySelectUI.Elements.removeChildAt(i);
+					break;
+				}
+			}
+			if(this.inventorySelectUI.Selected.element===element)
+			{
+				this.inventorySelectUI.Selected.removeAllChildren();
+				this.inventoryCompineUIOrganize();
+				this.inventoryViewUI.Viewer.removeAllChildren();
+			}
 			this.inventorySelectUIOrganize(element);
 		}
 		else if(command=="clearObjects")
 		{
 			this.objects=new Array();
-//TODO: Remove from containers.
+			this.gameUI.removeAllChildren();
 		}
 		else if(command=="changeObjectVisibility")
 		{
@@ -191,7 +210,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		else if(command=="logAppend")
 		{
 			var container = new createjs.Container();
-//TODO: dynamic px size
+//TODO: dynamic px size, Crate better UI.
 			var txt = new createjs.Text("", "20px Arial", "#FFF");
 			
 			txt.text = data;
@@ -204,10 +223,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 			container.timeLeft=20;
 			container.y = 50*this.logUI.children.length+50;
 			this.logUI.addChild(container);
-			
-			
-//TODO: create log ui and append the log from the data
-			//alert("message:"+data);
 		}
 		this.stage.update();
 	}
@@ -249,6 +264,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		else if (element.type=="inventory")
 		{
+
+			var hitArea = new createjs.Shape();
+			hitArea.graphics.beginFill("#FFF").drawRect(0,0,bitmap.width,bitmap.height);
+			bitmap.hitArea=hitArea;
+				
 			container.visible=false;
 			thisParent.inventorySelectUI.Elements.addChild(container);
 			thisParent.inventorySelectUIOrganize();
@@ -315,16 +335,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 			container.scaleY = h/bitmap.height;
 			container.x = (i%countX)*w;
 			container.y = Math.floor(i/countX)*h;
-			
-			var hitArea = new createjs.Shape();
-			/*hitArea.x = container.x
-			hitArea.y = container.y;*/
-//TODO: correct hitArrea for transparent objects
-			hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).beginFill("#FFF").drawRect(container.x,container.y,w,h);
-			container.hitArea=hitArea;
+			container.parentThis = this;
 			container.onPress=this.inventorySelectOnPress;
+			
 		}
-//TODO: reorganize selected viewUI combineUI
 	}
 	p.inventorySelectOnPress = function(event)
 	{
@@ -342,7 +356,11 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.scaleY = h/bitmap.height;
 		container.removeAllChildren();
 		container.element = element;
-		container.addChild(bitmap.clone());
+		var newBitmap = bitmap.clone();
+		newBitmap.width = bitmap.width;
+		newBitmap.height = bitmap.height;
+		newBitmap.hitArea = bitmap.hitArea;
+		container.addChild(newBitmap);
 		
 		container=parentThis.inventoryViewUI.Viewer;
 		var h=container.height;
@@ -351,16 +369,28 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.scaleX = w/bitmap.width;
 		container.scaleY = h/bitmap.height;
 		container.removeAllChildren();
-		container.addChild(bitmap.clone());
+		var newBitmap = bitmap.clone();
+		newBitmap.width = bitmap.width;
+		newBitmap.height = bitmap.height;
+		newBitmap.hitArea = bitmap.hitArea;
+		container.parentThis=parentThis;
+		container.addChild(newBitmap);
+
+
 		
 		parentThis.inventoryCompineUIOrganize(element);
 	
 		parentThis.stage.update();
 		parentThis.callbackInventorySelect(element);
-
 	}
 	p.inventoryCompineUIOrganize = function(selectedElement)
 	{
+		this.inventoryCompineUI.Elements.removeAllChildren();
+		if(selectedElement==null)
+		{
+			this.inventoryCommand("openViewUI");
+			return;
+		}
 		var elements = this.inventorySelectUI.Elements;
 		var length = elements.children.length;
 		var width=this.inventoryCompineUI.Elements.width;
@@ -370,7 +400,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var countY=4;
 		var h=height/countY;
 		var w=width/countX;
-		this.inventoryCompineUI.Elements.removeAllChildren();
 		for(var i=0;i<length;i++)
 		{
 			var container = elements.children[i];
@@ -385,17 +414,15 @@ this.advenGameEngine = this.advenGameEngine||{};
 			this.inventoryCompineUI.Elements.addChild(container);
 			container.scaleX = w/bitmap.width;
 			container.scaleY = h/bitmap.height;
-			container.addChild(bitmap.clone());
+			var newBitmap = bitmap.clone();
+			newBitmap.width = bitmap.width;
+			newBitmap.height = bitmap.height;
+			newBitmap.hitArea = bitmap.hitArea;
+			container.addChild(newBitmap);
 			
 			container.x = (i%countX)*w;
 			container.y = Math.floor(i/countX)*h;
 			
-			var hitArea = new createjs.Shape();
-			/*hitArea.x = container.x
-			hitArea.y = container.y;*/
-//TODO: correct hitArrea for transparent objects
-			hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).beginFill("#FFF").drawRect(container.x,container.y,w,h);
-			container.hitArea=hitArea;
 			container.parentThis=this;
 			
 			container.onPress=this.inventoryCombineOnPress;
@@ -437,6 +464,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			position=2+-percent;
 		}
+
 		
 		this.inventoryTransitionPosition=position;
 		this.inventorySelectUITransition(position);
@@ -603,7 +631,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventoryViewUI.Viewer.x = x
 		this.inventoryViewUI.Viewer.height=height;
 		this.inventoryViewUI.Viewer.y= y
-
+//TODO: onPress confusion bug fix.
+		//this.inventoryViewUI.Viewer.onPress = this.objectOnPress;
 		this.inventoryViewUI.addChild(this.inventoryViewUI.Viewer);
 
 		var bg = new createjs.Shape();
@@ -793,10 +822,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			this.inventoryTransitionCommand=command;
 		}
-		if(command=="openViewUI"&&this.inventoryTransitionPosition==1)
-			return false;
-		if(command=="openCompineUI"&&this.inventoryTransitionPosition==2)
-			return false;
+
 	}
 	p.tickPercent=-1;
 	p.tick = function()
@@ -804,6 +830,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		if(this.tickPercent!=-1)
 		{
+			if(this.inventoryTransitionCommand=="openViewUI"&&this.inventoryTransitionPosition==1)
+				return false;
+			if(this.inventoryTransitionCommand=="openCompineUI"&&this.inventoryTransitionPosition==2)
+				return false;
 			this.inventoryTransition((++this.tickPercent)/20);
 			if(this.tickPercent==20)
 			{
