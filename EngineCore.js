@@ -131,6 +131,37 @@ this.advenGameEngine = this.advenGameEngine||{};
 	{
 		this.gameXml = $.parseXML(xml);
 	}
+//TODO: add Documentation
+	p.imageGetUrl = function (image)
+	{
+		var imageUrl="";
+		var i=0;
+		var node = image;
+		do
+		{
+			var url = node.attr("url");
+			if(url)
+			{
+				imageUrl= url+ imageUrl; 
+			}
+			node=node.parent();
+			if(i++>=10)
+				break;
+        }while(node!=null)
+		return imageUrl;
+	}
+	 p.images = function()
+	 {
+		 var result = new Array();
+		 var i=0;
+		 var parentThis = this;
+		 $(this.gameXml).find("image").each(function()
+			  {	
+				  var url = parentThis.imageGetUrl($(this));
+				  result[i++] = url;
+			  });
+		 return result;
+	 }
 	//==================General Functions====================
 	/**
 	 * Executes A given command
@@ -582,9 +613,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 	{
 		var xml = this.gameXml;
 		var res;
+		var parentThis = this;
 		$(xml).find("inventory > objects > item[name='"+name+"'] > image").each(function()
 			  {	
-				  res =  $(this).attr('url');
+				  res =  parentThis.imageGetUrl($(this));
 				  return;		    
 			  });
 		return res;
@@ -644,7 +676,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var object = $(scene).find("objects object[name=\""+objectName+"\"]");
 		var state = $(object).find("state[name=\""+stateName+"\"]");
-		var imageUrl =  $(state).find("image").attr("url");
+		
+		var imageUrl =  this.imageGetUrl($(state).find("image"))
+
+//TODO: separate onload and events Occurred.
 		this.callbackObjectOnLoad(sceneName,objectName,imageUrl);
 		
 		this.eventOccurred("object","","onLoad",objectName);		 
@@ -715,7 +750,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var state = $(scene).find("background > states > state[name=\""+stateName+"\"]");
-		var image =  $(state).find("image").attr("url");
+		var image =  this.imageGetUrl($(state).find("image"));
 		this.callbackSceneOnLoad(sceneName,image);
 //TODO: first initialize and then try finding events
 		$(scene).find("objects > object").each(function()
@@ -748,7 +783,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.loadXmlString(xmlString);
 		return this;
 	}
-	//TODO: get scene/game images to preload
 	 p._runTest = function()
 	{
 

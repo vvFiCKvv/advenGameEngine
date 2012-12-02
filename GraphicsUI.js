@@ -34,8 +34,74 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.visibility;
 		this.update;
 	};
+	
+	GraphicsUI.imageEntry = function(url)
+	{
+		this.url = url;
+		this.image = null;
+		this.callback=null
+		this.isReady = false;
+	}
+	p.imageListGet = function(url)
+	{
+		for(i in this.images)
+		{
+			var entry = this.images[i];
+			if(url==entry.url)
+			{
+				return entry;
+			}
+		}
+		return null;
+	}
+	p.imageListAdd = function(url,callback)
+	{
+		var entry =  this.imageListGet(url);
+		if(entry==null)
+		{
+			entry = new GraphicsUI.imageEntry(url);
+			this.images[this.images.length] = entry;
+			if(callback==null)
+			{
+			}
+			
+			var image = new Image();
+			entry.image = image;
+			entry.parentThis = this;
+			image.entry=entry;			
+			image.onload = this.imageOnLoad;
+//TODO: add on error handler 
+			//image.onerror=
+			image.src = entry.url;
+			
+		}
+		if(callback!=null)
+		{
+			entry.callback=callback;
+		}
+		if(entry.isReady)
+		{
+			if(callback!=null)
+			{
+				callback(entry);
+			}
+		}
+		return entry;
 
+	}
+	p.imageOnLoad = function(event)
+	{
+		var image = event.target;
+		var entry = image.entry;
+		entry.isReady = true;
+		if(entry.callback)
+		{
+			entry.callback(entry);
+		}
+	}
+	
 	//================================public properties================================
+	p.images;
 	p.stage;
 	p.canvas;
 	p.inventoryUI;
@@ -191,19 +257,20 @@ this.advenGameEngine = this.advenGameEngine||{};
 				element = this.objects[i];
 				if(element.update==true)
 				{
-					var image = new Image();
-					image.element = element;				
+					var entry = this.imageListAdd(element.imageUrl,null);
+					
+					entry.element = element;		
 					element.container = new createjs.Container();
-					image.p = this;
-					image.onload = this.objectOnLoad;
-//TODO: add on error handler 
-					//image.onerror=
-					image.src = element.imageUrl;
 					element.update=false;
+					
+					this.imageListAdd(element.imageUrl,this.objectOnLoad);					
 				}
 				else 
 				{
-					this.objectUpdate(element);
+					if(element.type=="object"||element.type=="background")
+					{
+						this.objectUpdate(element);
+					}
 				}
 			}
 		}
@@ -238,12 +305,20 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			return null;
 	}
-	p.objectOnLoad = function(event)
+	p.preloadImages = function(urls)
+	{
+		for (i in urls)
+		{
+			var url = urls[i];
+			this.imageListAdd(url,null);
+		}
+	}
+	p.objectOnLoad = function(entry)
 	{
 //TODO: stretch image to correct dimensions
 //TODO: preload images
-		var image = event.target;
-		var element=image.element;
+		var image = entry.image;
+		var element=entry.element;
 		var container = element.container;
 		bitmap = new createjs.Bitmap(image);
 		bitmap.snapToPixel = true;
@@ -252,7 +327,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.element = element;
 		bitmap.width = image.width;
 		bitmap.height = image.height;
-		var thisParent=image.p;
+		var thisParent=entry.parentThis;
 		thisParent.objectUpdate(element);
 		if(element.type=="object")
 		{
@@ -274,7 +349,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			thisParent.inventorySelectUIOrganize();
 		}
 //TODO: Correct updates		
-		image.p.stage.update();
+		thisParent.stage.update();
 	}
 
 	p.objectUpdate = function(element)
@@ -336,6 +411,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			container.x = (i%countX)*w;
 			container.y = Math.floor(i/countX)*h;
 			container.parentThis = this;
+
 			container.onPress=this.inventorySelectOnPress;
 			
 		}
@@ -375,7 +451,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		newBitmap.hitArea = bitmap.hitArea;
 		container.parentThis=parentThis;
 		container.addChild(newBitmap);
-
+		
 
 		
 		parentThis.inventoryCompineUIOrganize(element);
@@ -556,6 +632,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		// if we use requestAnimationFrame, we should use a framerate that is a factor of 60:
 		createjs.Ticker.setFPS(10);
 		
+		this.images = new Array();
+		
 		this.gameUI = new  createjs.Container();
 		this.stage.addChild(this.gameUI);
 		this.logUI = new createjs.Container();
@@ -627,13 +705,14 @@ this.advenGameEngine = this.advenGameEngine||{};
 		y+=delimiter;		
 
 		this.inventoryViewUI.Viewer = new createjs.Container();
+		this.inventoryViewUI.addChild(this.inventoryViewUI.Viewer);
 		this.inventoryViewUI.Viewer.width=width;
 		this.inventoryViewUI.Viewer.x = x
 		this.inventoryViewUI.Viewer.height=height;
-		this.inventoryViewUI.Viewer.y= y
-//TODO: onPress confusion bug fix.
-		//this.inventoryViewUI.Viewer.onPress = this.objectOnPress;
-		this.inventoryViewUI.addChild(this.inventoryViewUI.Viewer);
+		this.inventoryViewUI.Viewer.y= y;
+
+		this.inventoryViewUI.Viewer.onPress = this.objectOnPress;
+
 
 		var bg = new createjs.Shape();
 		bg.x=x-delimiter/4;

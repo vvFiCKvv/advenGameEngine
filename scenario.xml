@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<game>
+<game url="source/images/testSceen/">
 	<pathways>
 		<direction name="west">
 			<image url="westArrow.jpg"></image>
@@ -187,7 +187,7 @@
 			   <image url="screwDriver.gif"></image>
 			   <action event="onClick">
 					<command>
-						<message>a screwdriver!</message>
+						<message>a knife!</message>
 					</command>
 				</action>
 			</item>

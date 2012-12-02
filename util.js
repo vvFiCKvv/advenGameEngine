@@ -25,9 +25,10 @@ function parseXml(xml)
 	var xmlString = advenGameEngine.EngineCore.jqueryToString($(xml));
 	engine = new advenGameEngine.EngineCore(xmlString);
 	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
+	graphics.preloadImages(engine.images());
 	engine.callbackInventoryObjectAdd = function(name,imageUrl)
 	{
-			graphics.executeCommand("addInventoryObject",name,"source/images/testSceen/"+imageUrl);
+			graphics.executeCommand("addInventoryObject",name,imageUrl);
 			graphics.executeCommand("update");
 	}
 	engine.callbackInventoryObjectRemove = function(name)
@@ -58,13 +59,13 @@ function parseXml(xml)
 	}
 	engine.callbackObjectOnLoad = function(sceneName, objectName, imageUrl)
 	{
-		graphics.executeCommand("addObject",objectName,"source/images/testSceen/"+imageUrl);
+		graphics.executeCommand("addObject",objectName,imageUrl);
 		graphics.executeCommand("update");
 		
 	}
 	engine.callbackSceneOnLoad = function(sceneName, imageUrl)
 	{
-		graphics.executeCommand("changeBackground",sceneName,"source/images/testSceen/"+imageUrl);
+		graphics.executeCommand("changeBackground",sceneName,imageUrl);
 		graphics.executeCommand("update");
 		
 	}
