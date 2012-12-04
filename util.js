@@ -26,6 +26,9 @@ function parseXml(xml)
 	engine = new advenGameEngine.EngineCore(xmlString);
 	graphics = new advenGameEngine.GraphicsUI(document.getElementById("testCanvas"));
 	graphics.preloadImages(engine.images());
+	
+
+		
 	engine.callbackInventoryObjectAdd = function(name,imageUrl)
 	{
 			graphics.executeCommand("addInventoryObject",name,imageUrl);
@@ -60,7 +63,11 @@ function parseXml(xml)
 	engine.callbackObjectOnLoad = function(sceneName, objectName, imageUrl)
 	{
 		graphics.executeCommand("addObject",objectName,imageUrl);
-		graphics.executeCommand("update");
+		
+			graphics.executeCommand("addObject","arrow","source/images/testSceen/Arrow.gif");
+			graphics.executeCommand("update");
+			graphics.executeCommand("moveObject","arrow","10%,50%,90");
+			graphics.executeCommand("update");
 		
 	}
 	engine.callbackSceneOnLoad = function(sceneName, imageUrl)

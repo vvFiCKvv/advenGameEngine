@@ -815,7 +815,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		
 		
-		this.conditionSet("condition_passwd",true);
+		//this.conditionSet("condition_passwd",true);
 		
 		//this.eventOccurred("object","","onClick","sirtati_01");
 		
@@ -852,6 +852,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 	
 	}
+//TODO: pathways
 //TODO: put isRunning as attribute to runtime
 	p.isRunning = false;
 	//=================Auxiliary Functions===================	

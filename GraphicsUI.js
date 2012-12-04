@@ -179,6 +179,54 @@ this.advenGameEngine = this.advenGameEngine||{};
 			}
 			
 		}
+		else if(command=="moveObject")
+		{
+			var dataTable = data.split(",");
+			var xString = dataTable[0];
+			var yString = dataTable[1];
+			var rotString = dataTable[2];
+			var pointX=0;
+			var pointY=0;
+			var rotation=0;
+			if(xString.charAt(xString.length-1)=='%')
+			{
+				var str = xString.substr(0,xString.length-1)
+				pointX = parseInt(str);
+				pointX = pointX*this.canvas.width/100;
+//TODO: fix width to corect
+			}
+			else
+			{
+				pointX = parseInt(xString);
+			}
+			if(yString.charAt(yString.length-1)=='%')
+			{
+				var str = yString.substr(0,yString.length-1)
+				pointY = parseInt(str);
+				pointY = pointY*this.canvas.height/100;
+			}
+			else
+			{
+				pointY = parseInt(yString);
+			}
+			rotation = parseInt(rotString)
+
+			var element = this.objectsGetElement(target);
+			if(element&&element.container)
+			{
+				element.container.x=pointX;
+				element.container.y=pointY;
+				element.container.rotation = rotation;
+				var bitmap = element.container.children[0];
+				if(bitmap)
+				{
+					bitmap.regX = bitmap.width/2;
+					bitmap.regY = bitmap.height/2;
+					bitmap.rotation = rotation;
+				}
+				//element.container.update();
+			}
+		}
 		else if(command=="addInventoryObject")
 		{
 			//return;
@@ -277,18 +325,35 @@ this.advenGameEngine = this.advenGameEngine||{};
 		else if(command=="logAppend")
 		{
 			var container = new createjs.Container();
-//TODO: dynamic px size, Crate better UI.
-			var txt = new createjs.Text("", "20px Arial", "#FFF");
-			
+			var delimeter = this.canvas.width /10;
+			var textHeight = this.canvas.height/20;
+			var txt = new createjs.Text("", textHeight+"px Arial", "#000");			
 			txt.text = data;
-			txt.lineWidth = 400;
+			txt.outline = true;
+			txt.lineWidth = this.canvas.width - 2*delimeter;
+			var h =txt.getMeasuredHeight();
 			txt.textBaseline = "top";
 			txt.textAlign = "left";
 			txt.y = 0;
-			txt.x = 180;
+			txt.x = delimeter;
+			container.addChild(txt);
+			
+			var txt = new createjs.Text("", textHeight+"px Arial", "#FFF");			
+			txt.text = data;
+			txt.lineWidth = this.canvas.width - 2*delimeter;
+			var h =txt.getMeasuredHeight();
+			txt.textBaseline = "top";
+			txt.textAlign = "left";
+			txt.y = 0;
+			txt.x = delimeter;
 			container.addChild(txt);
 			container.timeLeft=20;
-			container.y = 50*this.logUI.children.length+50;
+			for (i in this.logUI.children)
+			{
+				var cont = this.logUI.children[i];
+				cont.y-=h;
+			}
+			container.y =-h;
 			this.logUI.addChild(container);
 		}
 		this.stage.update();
@@ -315,8 +380,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	p.objectOnLoad = function(entry)
 	{
-//TODO: stretch image to correct dimensions
-//TODO: preload images
+//TODO: move object to xml location
 		var image = entry.image;
 		var element=entry.element;
 		var container = element.container;
@@ -336,6 +400,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		else if(element.type=="background")
 		{
 			thisParent.gameUI.addChildAt(container,0);
+			thisParent.gameUI.scaleX = thisParent.canvas.width / image.width;
+			thisParent.gameUI.scaleY = thisParent.canvas.height / image.height;
 		}
 		else if (element.type=="inventory")
 		{
@@ -363,21 +429,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 					break;
 				bitmap.x = element.locationX;
 				bitmap.y = element.locationY;
-				//bitmap.regX = bitmap.image.width/2|0;
-				//bitmap.regY = bitmap.image.height/2|0;
-				//bitmap.name = element.name;
-				/*
-				var hitArea = new createjs.Shape();
-				hitArea.x = bitmap.width/2;
-				hitArea.y = bitmap.height/2;
-				//hitArea.graphics.beginFill("#FF0").drawEllipse(-11,-14,24,18);
-				//hitArea.graphics.beginStroke("#FF0").setStrokeStyle(5).drawPolyStar(0,0,bitmap.height/2-15,5,0.6).closePath();
-
-				// assign the hitArea to each bitmap to use it for hit tests:
-				//bitmap.hitArea = hitArea;
-				//bitmap.mask = hitArea;
-				//container.addChild(hitArea);
-				* */
+				bitmap.regX = bitmap.width/2;
+				bitmap.regY = bitmap.height/2;
+				bitmap.rotation = element.rotation;
 		}
 		container.parentThis=this;
 		container.onPress = this.objectOnPress;
@@ -396,9 +450,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var length = elements.children.length;
 		var width=elements.width;
 		var height=elements.height;
-//TODO:Calculating dynamical
-		var countX=2;
-		var countY=4;
+		var ratio = 2;
+		var countX=Math.ceil(Math.sqrt(length/ratio));
+		var countY=ratio*countX;
 		var h=height/countY;
 		var w=width/countX;
 		for(var i=0;i<length;i++)
@@ -415,6 +469,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			container.onPress=this.inventorySelectOnPress;
 			
 		}
+//TODO: call inventoryCompineUIOrganize when new items added.
 	}
 	p.inventorySelectOnPress = function(event)
 	{
@@ -431,6 +486,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.scaleX = w/bitmap.width;
 		container.scaleY = h/bitmap.height;
 		container.removeAllChildren();
+//container.y -= h/2;
 		container.element = element;
 		var newBitmap = bitmap.clone();
 		newBitmap.width = bitmap.width;
@@ -462,18 +518,21 @@ this.advenGameEngine = this.advenGameEngine||{};
 	p.inventoryCompineUIOrganize = function(selectedElement)
 	{
 		this.inventoryCompineUI.Elements.removeAllChildren();
-		if(selectedElement==null)
+		if(selectedElement==null)//if there isn't a selection break
 		{
-			this.inventoryCommand("openViewUI");
+			if(this.inventoryTransitionPosition!=0)// if inventory opened force view object details(viewUI)
+				{
+					this.inventoryCommand("openViewUI");
+				}
 			return;
 		}
 		var elements = this.inventorySelectUI.Elements;
 		var length = elements.children.length;
 		var width=this.inventoryCompineUI.Elements.width;
 		var height=this.inventoryCompineUI.Elements.height;
-//TODO:Calculating dynamical
-		var countX=3;
-		var countY=4;
+		var ratio = 1
+		var countX=Math.ceil(Math.sqrt(length/ratio));
+		var countY=ratio*countX;
 		var h=height/countY;
 		var w=width/countX;
 		for(var i=0;i<length;i++)
@@ -636,10 +695,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		this.gameUI = new  createjs.Container();
 		this.stage.addChild(this.gameUI);
-		this.logUI = new createjs.Container();
-		this.stage.addChild(this.logUI);
+
 		this.inventoryUI = new createjs.Container();
 		this.stage.addChild(this.inventoryUI);
+		
+		this.logUI = new createjs.Container();
+		this.stage.addChild(this.logUI);
 		
 		this.executeCommand("clearObjects");
 		
@@ -674,6 +735,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var alpha = 0.7;
 		var delimiter = xSplit*0.4;
 		var cornerRatio=xSplit*0.3;
+		var textHeight = this.canvas.width/20;
 		
 		var x=xLeft+delimiter/2;
 		var y=0;
@@ -689,7 +751,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 
 
 		
-		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
+		var txt = new createjs.Text("", textHeight+"px Arial", "#F00");
 		txt.text = "Object Details";
 		txt.lineWidth = w;
 		txt.textBaseline = "top";
@@ -737,7 +799,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventoryCompineUI.addChildAt(bg);
 		
 		
-		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
+		var txt = new createjs.Text("", textHeight+"px Arial", "#F00");
 			txt.text = "Combine Selected";
 			txt.lineWidth = w;
 			txt.textBaseline = "top";
@@ -825,7 +887,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventorySelectUI.addChild(bg);
 		
 		var x=x1+delimiter/2;
-		var y=x2+delimiter/2;
+		var y=y2+delimiter/2;
 		var w=xSplit-delimiter;
 		var h=xSplit-delimiter;
 		var container = new createjs.Container();
@@ -836,14 +898,14 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this.inventorySelectUI.Selected=container;
 		this.inventorySelectUI.addChild(container);
 		
-		var y=xSplit+delimiter;
-		var h=this.canvas.height-xSplit-delimiter;
-		var txt = new createjs.Text("", this.canvas.width/20+"px Arial", "#F00");
+		var y=this.canvas.height-xSplit-delimiter;
+		var w=xLeft-delimiter;
+		var txt = new createjs.Text("", textHeight+"px Arial", "#F00");
 		txt.text = "Select Object";
 		txt.lineWidth = w;
 		txt.textBaseline = "top";
 		txt.textAlign = "center";
-		txt.y = y+0.8*h;
+		txt.y = y+textHeight;
 		txt.x = x1-2*xSplit;
 		this.inventorySelectUI.addChild(txt);
 		
@@ -873,7 +935,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	p._initializeGameLogUI = function()
 	{
-		
+		this.logUI.y = 0.8*this.canvas.height;
 	}
 	p.inventoryCommand = function(command)
 	{

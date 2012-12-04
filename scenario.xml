@@ -2,24 +2,25 @@
 <game url="source/images/testSceen/">
 	<pathways>
 		<direction name="west">
-			<image url="westArrow.jpg"></image>
-			<location></location>					
+			<image url="Arrow.gif"></image>
+			<location x="10%" y="50%" rotation="90"></location>					
 		</direction>
 		<direction name="east">
-			<image url="eastArrow.jpg"></image>
-			<location></location>					
+			<image url="Arrow.gif"></image>
+			<location x="90%" y="50%" rotation="270"></location>						
 		</direction>
 		<direction name="south">
-			<image url="southArrow.jpg"></image>
-			<location></location>					
+			<image url="Arrow.gif"></image>
+		<location x="50%" y="10%"></location>					
 		</direction>
 		<direction name="north">
-			<image url="northArrow.jpg"></image>
+			<image url="Arrow.gif"></image>
+			<location x="50%" y="90%" rotation="180"></location>
 			<location></location>					
 		</direction>
 		<direction name="back">
-			<image url="backArrow.jpg"></image>
-			<location></location>					
+			<image url="Arrow.gif"></image>
+			<location x="50%" y="90%" rotation="180"></location>				
 		</direction>
 	</pathways>
 	<!-- Describes a list of  scenes(camera view) -->
@@ -39,7 +40,10 @@
 							</action>
 						</pathway>
 						<action event="onLoad">
-							<command name="changeObjectVisibility" target="all" data="false">
+							<command name="changeObjectVisibility" target="all" data="false"></command>								
+						</action>
+						<action event="onClick">
+							<command>
 								<message>Its too dark too see anything!</message>
 							</command>								
 						</action>
@@ -133,6 +137,8 @@
 								</requires>
 								<command name="inventoryRemove" data="key"><message>Key inserted</message></command>
 								<command name="conditionSet" target="this"><data name="condition_keyInserted" status="true"></data></command>
+
+								<command name="conditionSet" target="this"><data name="condition_passwd" status="true"></data></command>
 							</action>
 							<action event="onClick">
 								<requires>
@@ -148,9 +154,17 @@
 							</action>
 							<action event="onClick">
 								<requires>
+									<condition name="condition_keyInserted"></condition>
 									<condition name="condition_passwd"></condition>
 								</requires>
 								<command name="changeObjectState" target="this" data="semiOpen"><message>well done, its unlocked</message></command>
+							</action>
+							<action event="onClick">
+								<requires>
+									<condition name="condition_keyInserted" not="true"></condition>
+									<condition name="condition_passwd" not="true"></condition>
+								</requires>
+								<command><message>you need a key and a password to open this.</message></command>
 							</action>
 						</state>
 					</states>
@@ -184,10 +198,18 @@
 				</action>
 			</item>
 			<item name="knife">
-			   <image url="screwDriver.gif"></image>
+			   <image url="knife.gif"></image>
 			   <action event="onClick">
 					<command>
 						<message>a knife!</message>
+					</command>
+				</action>
+			</item>
+			<item name="key">
+			   <image url="key.gif"></image>
+			   <action event="onClick">
+					<command>
+						<message>a key!</message>
 					</command>
 				</action>
 			</item>
