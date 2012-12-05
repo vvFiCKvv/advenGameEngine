@@ -17,6 +17,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		this._initialize(canvas);
 	}
 
+	
 	/**
 	@class description
 	*/
@@ -39,8 +40,38 @@ this.advenGameEngine = this.advenGameEngine||{};
 	{
 		this.url = url;
 		this.image = null;
-		this.callback=null
+		this.callbacks=new Array();
 		this.isReady = false;
+	}
+	
+	GraphicsUI.locationString = function(locationX,locationY,rotation)
+	{
+		var locString = "";
+		if(locationX)
+		{
+			locString+=locationX+",";
+		}
+		else
+		{
+			locString+="0,";
+		}
+		if(locationY)
+		{
+			locString+=locationY+",";
+		}
+		else
+		{
+			locString+="0,";
+		}
+		if(rotation)
+		{
+			locString+=rotation;
+		}
+		else
+		{
+			locString+="0";
+		}
+		return locString;
 	}
 	p.imageListGet = function(url)
 	{
@@ -54,17 +85,34 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		return null;
 	}
-	p.imageListAdd = function(url,callback)
+//TODO: multiple objects with the same url correct callbacks
+	p.imageListCallback = function(url,callback,data)
+	{
+		var entry =  this.imageListGet(url);
+		if(entry==null)
+		{
+			entry = this.imageListAdd(url);
+		}
+		if(entry.isReady)
+		{
+			var image = entry.image;
+			callback(image,data)
+		}
+		else
+		{
+			var callbackEntry = new Array();
+			callbackEntry[0]=callback;
+			callbackEntry[1]=data;
+			entry.callbacks[entry.callbacks.length]=callbackEntry;
+		}
+	}
+	p.imageListAdd = function(url)
 	{
 		var entry =  this.imageListGet(url);
 		if(entry==null)
 		{
 			entry = new GraphicsUI.imageEntry(url);
 			this.images[this.images.length] = entry;
-			if(callback==null)
-			{
-			}
-			
 			var image = new Image();
 			entry.image = image;
 			entry.parentThis = this;
@@ -72,32 +120,23 @@ this.advenGameEngine = this.advenGameEngine||{};
 			image.onload = this.imageOnLoad;
 //TODO: add on error handler 
 			//image.onerror=
-			image.src = entry.url;
-			
-		}
-		if(callback!=null)
-		{
-			entry.callback=callback;
-		}
-		if(entry.isReady)
-		{
-			if(callback!=null)
-			{
-				callback(entry);
-			}
+			image.src = entry.url;		
 		}
 		return entry;
-
 	}
 	p.imageOnLoad = function(event)
 	{
 		var image = event.target;
 		var entry = image.entry;
 		entry.isReady = true;
-		if(entry.callback)
+		for(i in entry.callbacks)
 		{
-			entry.callback(entry);
+			var callbackEntry = entry.callbacks[i];
+			var calback = callbackEntry[0];
+			var data = callbackEntry[1]
+			calback(image,data);
 		}
+		entry.callbacks=null;
 	}
 	
 	//================================public properties================================
@@ -144,7 +183,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			if(newItem.imageUrl!=data)
 				{
 					newItem.imageUrl=data;
-					this.gameUI.removeChild(newItem.container);
+					this.gameUI.background.removeChild(newItem.container);
 					newItem.container=null;
 					newItem.update=true;
 				}
@@ -172,7 +211,36 @@ this.advenGameEngine = this.advenGameEngine||{};
 				if(newItem.imageUrl!=data)
 				{
 					newItem.imageUrl=data;
-					this.gameUI.removeChild(newItem.container);
+					this.gameUI.objects.removeChild(newItem.container);
+					newItem.container=null;
+					newItem.update=true;
+				}
+			}
+			
+		}
+		else if(command=="addPathway")
+		{
+			var newItem;
+			newItem = this.objectsGetElement(target);
+			if(newItem==null)
+			{
+				newItem = new GraphicsUI.object();
+				newItem.type="pathway";
+				newItem.name=target;
+				newItem.imageUrl=data;
+				newItem.container=null;
+				newItem.visibility=true;
+				newItem.update=true;
+				var index = this.objects.length;
+				var index = this.objects.length;
+				this.objects[index]=newItem;
+			}
+			else
+			{
+				if(newItem.imageUrl!=data)
+				{
+					newItem.imageUrl=data;
+					this.gameUI.pathways.removeChild(newItem.container);
 					newItem.container=null;
 					newItem.update=true;
 				}
@@ -192,7 +260,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			{
 				var str = xString.substr(0,xString.length-1)
 				pointX = parseInt(str);
-				pointX = pointX*this.canvas.width/100;
+				pointX = pointX*this.canvas.width/this.gameUI.scaleX/100;
 //TODO: fix width to corect
 			}
 			else
@@ -203,7 +271,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			{
 				var str = yString.substr(0,yString.length-1)
 				pointY = parseInt(str);
-				pointY = pointY*this.canvas.height/100;
+				pointY = pointY*this.canvas.height/this.gameUI.scaleY/100;
 			}
 			else
 			{
@@ -216,15 +284,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 			{
 				element.container.x=pointX;
 				element.container.y=pointY;
-				element.container.rotation = rotation;
+				element.rotation = rotation;
 				var bitmap = element.container.children[0];
 				if(bitmap)
 				{
-					bitmap.regX = bitmap.width/2;
-					bitmap.regY = bitmap.height/2;
 					bitmap.rotation = rotation;
 				}
-				//element.container.update();
 			}
 		}
 		else if(command=="addInventoryObject")
@@ -252,7 +317,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 				{
 					
 					newItem.imageUrl=data;
-					this.gameUI.removeChild(newItem.container);
+//TODO: possible bug
+					this.inventorySelectUI.elements.removeChild(newItem.container);
 					newItem.container=null;
 					newItem.update=true;
 				}
@@ -305,17 +371,15 @@ this.advenGameEngine = this.advenGameEngine||{};
 				element = this.objects[i];
 				if(element.update==true)
 				{
-					var entry = this.imageListAdd(element.imageUrl,null);
-					
-					entry.element = element;		
 					element.container = new createjs.Container();
 					element.update=false;
-					
-					this.imageListAdd(element.imageUrl,this.objectOnLoad);					
+					element.parentThis = this;
+//TODO: find a better way than using parentThis in too many variables
+					this.imageListCallback(element.imageUrl,this.objectOnLoad,element);					
 				}
 				else 
 				{
-					if(element.type=="object"||element.type=="background")
+					if(element.type=="object"||element.type=="background" || element.type=="pathway")
 					{
 						this.objectUpdate(element);
 					}
@@ -375,14 +439,13 @@ this.advenGameEngine = this.advenGameEngine||{};
 		for (i in urls)
 		{
 			var url = urls[i];
-			this.imageListAdd(url,null);
+			this.imageListAdd(url);
 		}
 	}
-	p.objectOnLoad = function(entry)
+	p.objectOnLoad = function(image,data)
 	{
 //TODO: move object to xml location
-		var image = entry.image;
-		var element=entry.element;
+		var element=data;
 		var container = element.container;
 		bitmap = new createjs.Bitmap(image);
 		bitmap.snapToPixel = true;
@@ -391,15 +454,31 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.element = element;
 		bitmap.width = image.width;
 		bitmap.height = image.height;
-		var thisParent=entry.parentThis;
+
+		
+		var thisParent=element.parentThis;
 		thisParent.objectUpdate(element);
 		if(element.type=="object")
 		{
-			thisParent.gameUI.addChild(container);
+			bitmap.regX = bitmap.width/2;
+			bitmap.regY = bitmap.height/2;
+			bitmap.rotation = element.rotation;
+			bitmap.x += bitmap.regX;
+			bitmap.y += bitmap.regY;
+			thisParent.gameUI.objects.addChild(container);
+		}
+		if(element.type=="pathway")
+		{
+			bitmap.regX = bitmap.width/2;
+			bitmap.regY = bitmap.height/2;
+			bitmap.rotation = element.rotation;
+			bitmap.x += bitmap.regX;
+			bitmap.y += bitmap.regY;
+			thisParent.gameUI.pathways.addChild(container);
 		}
 		else if(element.type=="background")
 		{
-			thisParent.gameUI.addChildAt(container,0);
+			thisParent.gameUI.background.addChild(container);
 			thisParent.gameUI.scaleX = thisParent.canvas.width / image.width;
 			thisParent.gameUI.scaleY = thisParent.canvas.height / image.height;
 		}
@@ -429,9 +508,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 					break;
 				bitmap.x = element.locationX;
 				bitmap.y = element.locationY;
-				bitmap.regX = bitmap.width/2;
-				bitmap.regY = bitmap.height/2;
-				bitmap.rotation = element.rotation;
 		}
 		container.parentThis=this;
 		container.onPress = this.objectOnPress;
@@ -717,7 +793,13 @@ this.advenGameEngine = this.advenGameEngine||{};
 
 	p._initializeGameUI = function()
 	{
+		this.gameUI.background = new createjs.Container();
+		this.gameUI.addChild(this.gameUI.background);
 		
+		this.gameUI.objects = new createjs.Container();
+		this.gameUI.addChild(this.gameUI.objects);
+		this.gameUI.pathways = new createjs.Container();
+		this.gameUI.addChild(this.gameUI.pathways);
 
 	}
 	p._initializeInventoryUI = function()

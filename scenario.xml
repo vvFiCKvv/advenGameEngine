@@ -3,11 +3,11 @@
 	<pathways>
 		<direction name="west">
 			<image url="Arrow.gif"></image>
-			<location x="10%" y="50%" rotation="90"></location>					
+			<location x="10%" y="50%" rotation="270"></location>					
 		</direction>
 		<direction name="east">
 			<image url="Arrow.gif"></image>
-			<location x="90%" y="50%" rotation="270"></location>						
+			<location x="90%" y="50%" rotation="90"></location>						
 		</direction>
 		<direction name="south">
 			<image url="Arrow.gif"></image>

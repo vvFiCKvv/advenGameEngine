@@ -60,15 +60,22 @@ function parseXml(xml)
 		graphics.executeCommand("logAppend","",message);
 		graphics.executeCommand("update");
 	}
-	engine.callbackObjectOnLoad = function(sceneName, objectName, imageUrl)
+	engine.callbackObjectOnLoad = function(sceneName, objectName, imageUrl,locationX,locationY,rotation)
 	{
 		graphics.executeCommand("addObject",objectName,imageUrl);
+		graphics.executeCommand("update");
+		var locString = advenGameEngine.GraphicsUI.locationString(locationX,locationY,rotation);
+		graphics.executeCommand("moveObject",objectName,locString);
+		graphics.executeCommand("update");
 		
-			graphics.executeCommand("addObject","arrow","source/images/testSceen/Arrow.gif");
-			graphics.executeCommand("update");
-			graphics.executeCommand("moveObject","arrow","10%,50%,90");
-			graphics.executeCommand("update");
-		
+	}
+	engine.callbackPathwayOnLoad = function(name, imageUrl,locationX,locationY,rotation)
+	{
+		graphics.executeCommand("addPathway",name,imageUrl);
+		graphics.executeCommand("update");
+		var locString = advenGameEngine.GraphicsUI.locationString(locationX,locationY,rotation);
+		graphics.executeCommand("moveObject",name,locString);
+		graphics.executeCommand("update");
 	}
 	engine.callbackSceneOnLoad = function(sceneName, imageUrl)
 	{
@@ -76,9 +83,14 @@ function parseXml(xml)
 		graphics.executeCommand("update");
 		
 	}
-	engine.callbackChangeObjectVisibility = function(sceneName, objectName,status)
+	engine.callbackObjectVisibilityChange = function(sceneName, objectName,status)
 	{
 		graphics.executeCommand("changeObjectVisibility",objectName,status);
+		graphics.executeCommand("update");
+	}
+	engine.callbackPathwayVisibilityChange = function(name, status)
+	{
+		graphics.executeCommand("changeObjectVisibility",name,status);
 		graphics.executeCommand("update");
 	}
 	//	engine.loadXmlString(xmlString);
@@ -89,6 +101,8 @@ function parseXml(xml)
 	graphics.executeCommand("addObject","name","source/images/testSceen/sirtati_01_closed.gif");
 	graphics.executeCommand("update");
 	*/
+	
+		
 }
 
 

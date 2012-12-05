@@ -77,8 +77,20 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 * @memberOf advenGameEngine.EngineCore#
 	 * @type jquery
 	**/
+	p.callbackObjectVisibilityChange;
+	
+	p.callbackPathwayOnLoad;
+	/**
+	 * callback function(sceneName,objectName,imageUrl) called when an object is loaded.
+	 * arguments: scene name, image url.
+	 * @property callbackOnExecuteCommand
+	 * @static
+	 * @memberOf advenGameEngine.EngineCore#
+	 * @type jquery
+	**/
+	p.callbackPathwayVisibilityChange;
+	
 	p.callbackSceneOnLoad;
-	p.callbackChangeObjectVisibility;
 	p.callbackInventoryObjectAdd;
 	p.callbackInventoryObjectRemove;
 	
@@ -117,6 +129,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		if(p.isRunning)
 		{
 			this.parseScene($(this.gameXml).find("game > scenes"));
+			this.parsePathways($(this.gameXml).find("game > pathways"));
 			this._runTest();
 		}
 		return p.isRunning ;
@@ -174,7 +187,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	 **/
 	p.executeCommand = function (target,command,data,message)
 	{
-		console.log("executeCommand==command name:"+ command +" data: "+ data +" msg: "+ message);
+//		console.log("executeCommand==command name:"+ command +" data: "+ data +" msg: "+ message);
 		var parentThis = this;
 		var sceneName="";
 		var objectName="";
@@ -219,7 +232,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			else if(command=="changeObjectVisibility")
 			{
 				parentThis.objectChangeVisibility(sceneName,objectName,data);
-				parentThis.callbackChangeObjectVisibility(sceneName,objectName,data);
+				parentThis.callbackObjectVisibilityChange(sceneName,objectName,data);
 			}
 			else if(command=="conditionSet")
 			{
@@ -242,14 +255,36 @@ this.advenGameEngine = this.advenGameEngine||{};
 		});
 //TODO:Add xml prototype for variables
 	}
-
+	/**
+	 * Loads a given jquery pathways into the game xml.
+	 * @method parseScene
+	 * @param {Jquery} jqueryScene a given jquery representing the pathways of the game.
+	 * @memberOf advenGameEngine.EngineCore#
+	 **/
+	p.parsePathways = function(jqueryScene)
+	{
+		var parentThis = this;
+		$(jqueryScene).find("direction").each(function()
+		{
+//TODO: fix callbackPathwayVisibilityChange false on scene load fix callbackPathwayVisibilityChange correctly
+			var name = $(this).attr("name");
+			var imageUrl =  parentThis.imageGetUrl($(this).find("image"));
+//TODO: correct location for objects.
+			var location =  $(this).find("location");
+//TODO: separate onload and events Occurred.
+			parentThis.callbackPathwayOnLoad(name,imageUrl,$(location).attr("x"),$(location).attr("y"),$(location).attr("rotation"));
+			parentThis.callbackPathwayVisibilityChange(name,"true");
+		});
+	}
+	
 	/**
 	 * Loads a given jquery scene into the game xml.
 	 * @method parseScene
 	 * @param {Jquery} jqueryScene a given jquery representing a scene of the game.
 	 * @memberOf advenGameEngine.EngineCore#
 	 **/
-	p.parseScene = function(jqueryScene){
+	p.parseScene = function(jqueryScene)
+	{
 		var xml =  this.gameXml;
 		var parentThis = this;
 		var defaultScene="";
@@ -276,7 +311,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	/**
 	 * Loads a given jquery object into in the game xml. And assign it to a given scene
-	 * @method parseScene
+	 * @method parseObject
 	 * @param {Jquery} jqueryObject a given jquery representing a scene of the game.
 	 * @param {String} sceneName a given name of a scene to assign the object.
 	 * @memberOf advenGameEngine.EngineCore#
@@ -418,8 +453,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.eventOccurred = function(type,sender,event, data)
 	{
-		EngineCore._xmlFindConsoleLog(this.gameXml,"runtime");
-		console.log("eventOccurred=="+" type:"+type+" sender:"+sender+" event:"+event+" data:"+data)
+		//EngineCore._xmlFindConsoleLog(this.gameXml,"runtime");
+//		console.log("eventOccurred=="+" type:"+type+" sender:"+sender+" event:"+event+" data:"+data)
 		var sceneName = this.gameGetCurrentScene();
 		var objectName;
 		var stateName;
@@ -430,7 +465,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			xmlQuery="scenes > scene[name='"+sceneName+"']";
 			stateName = this.sceneGetState(sceneName);
 			xmlQuery+=" > background > states > state[name='"+stateName+"']";
-			xmlQuery+=" > pathway['"+data+"']"
+			xmlQuery+=" > pathway[name='"+data+"']"
 		}
 		else if(type=="background")
 		{
@@ -671,7 +706,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		{
 			stateName  = $(this).attr("state");
 		});
-		console.log("objectOnLoad==scene:"+sceneName+" object:"+objectName+" state:"+stateName);
+//		console.log("objectOnLoad==scene:"+sceneName+" object:"+objectName+" state:"+stateName);
 		
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var object = $(scene).find("objects object[name=\""+objectName+"\"]");
@@ -746,7 +781,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 			stateName  = $(this).attr("state");
 		});
 		
-		console.log("sceneOnLoad==scene:"+sceneName+"state:"+stateName);
+//		console.log("sceneOnLoad==scene:"+sceneName+"state:"+stateName);
 		
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var state = $(scene).find("background > states > state[name=\""+stateName+"\"]");
@@ -788,7 +823,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 
 		var xml = this.gameXml;
 		//prints runtime in console!
-		EngineCore._xmlFindConsoleLog(xml,"runtime");
+		//EngineCore._xmlFindConsoleLog(xml,"runtime");
 		
 					
 		this.executeCommand("","inventoryAdd","flashLightBroken");
@@ -837,7 +872,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 		//this.objectChangeVisibility("sirtati_01","false");
 		//prints runtime in console!
-		EngineCore._xmlFindConsoleLog(xml,"runtime");
+		//EngineCore._xmlFindConsoleLog(xml,"runtime");
 		
 		//prints image url for each inventory items.
 		//parentThis = this;
