@@ -128,8 +128,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		p.isRunning = !p.isRunning;
 		if(p.isRunning)
 		{
-			this.parseScene($(this.gameXml).find("game > scenes"));
 			this.parsePathways($(this.gameXml).find("game > pathways"));
+			this.parseScene($(this.gameXml).find("game > scenes"));
+
 			this._runTest();
 		}
 		return p.isRunning ;
@@ -266,14 +267,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var parentThis = this;
 		$(jqueryScene).find("direction").each(function()
 		{
-//TODO: fix callbackPathwayVisibilityChange false on scene load fix callbackPathwayVisibilityChange correctly
 			var name = $(this).attr("name");
 			var imageUrl =  parentThis.imageGetUrl($(this).find("image"));
-//TODO: correct location for objects.
 			var location =  $(this).find("location");
 //TODO: separate onload and events Occurred.
 			parentThis.callbackPathwayOnLoad(name,imageUrl,$(location).attr("x"),$(location).attr("y"),$(location).attr("rotation"));
-			parentThis.callbackPathwayVisibilityChange(name,"true");
+			parentThis.callbackPathwayVisibilityChange(name,"false");
 		});
 	}
 	
@@ -296,8 +295,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 				//add 
 				var stateName=$(this).attr("name");
 				var toAddString="<scene name=\""+sceneName+"\"><background state=\""+stateName+"\"/></scene>";
-				$(xml).find("runtime > scenes").prepend($(toAddString));	
-			});	  
+				$(xml).find("runtime > scenes").prepend($(toAddString));
+			});	
 			$(this).find("objects > object").each(function()
 			{		
 				parentThis.parseObject($(this),sceneName);
@@ -465,6 +464,10 @@ this.advenGameEngine = this.advenGameEngine||{};
 			xmlQuery="scenes > scene[name='"+sceneName+"']";
 			stateName = this.sceneGetState(sceneName);
 			xmlQuery+=" > background > states > state[name='"+stateName+"']";
+			xmlQuery+=" > pathway[name='"+data+"']"
+			
+			xmlQuery+=",scenes > scene[name='"+sceneName+"']";
+			xmlQuery+=" > background";
 			xmlQuery+=" > pathway[name='"+data+"']"
 		}
 		else if(type=="background")
@@ -713,9 +716,9 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var state = $(object).find("state[name=\""+stateName+"\"]");
 		
 		var imageUrl =  this.imageGetUrl($(state).find("image"))
-
 //TODO: separate onload and events Occurred.
-		this.callbackObjectOnLoad(sceneName,objectName,imageUrl);
+		var location =  $(this).find("location");
+		this.callbackObjectOnLoad(sceneName,objectName,imageUrl,$(location).attr("x"),$(location).attr("y"),$(location).attr("rotation"));
 		
 		this.eventOccurred("object","","onLoad",objectName);		 
 	}
@@ -729,7 +732,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 	**/
 	p.sceneChangeState= function(sceneName,state)
 	{
-		$(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").attr("state",state);
+		$(this.gameXml).find("runtime > scenes > scene[name=\""+sceneName+"\"] > background").attr("state",state);		
 		this.sceneOnLoad(sceneName);
 	}
 	/**
@@ -786,7 +789,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 		var scene = $(this.gameXml).find("game > scenes >  scene[name=\""+sceneName+"\"]");
 		var state = $(scene).find("background > states > state[name=\""+stateName+"\"]");
 		var image =  this.imageGetUrl($(state).find("image"));
-		this.callbackSceneOnLoad(sceneName,image);
+		this.callbackSceneOnLoad(sceneName,image);		
+		
 //TODO: first initialize and then try finding events
 		$(scene).find("objects > object").each(function()
 			  {	
@@ -795,6 +799,22 @@ this.advenGameEngine = this.advenGameEngine||{};
 				  	    
 			  });
 		this.eventOccurred("background","","onLoad",sceneName);
+		
+
+		$(this.gameXml).find("game > pathways >direction").each(function()
+		{
+			parentThis.callbackPathwayVisibilityChange($(this).attr("name"),"false");
+		});
+		
+		var pathway = $(scene).find("background > pathway").each(function()
+		{
+			parentThis.callbackPathwayVisibilityChange($(this).attr("name"),"true");
+		});
+		pathway = $(state).find("pathway").each(function()
+		{
+			parentThis.callbackPathwayVisibilityChange($(this).attr("name"),"true");
+
+		});
 		 
 	}
 	//=================================private methods=================================
@@ -887,7 +907,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		
 	
 	}
-//TODO: pathways
 //TODO: put isRunning as attribute to runtime
 	p.isRunning = false;
 	//=================Auxiliary Functions===================	

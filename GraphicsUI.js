@@ -85,7 +85,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		return null;
 	}
-//TODO: multiple objects with the same url correct callbacks
 	p.imageListCallback = function(url,callback,data)
 	{
 		var entry =  this.imageListGet(url);
@@ -188,6 +187,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 					newItem.update=true;
 				}
 			}
+			this.elementUpdate(newItem);
 		}
 		else if(command=="addObject")
 		{
@@ -216,6 +216,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 					newItem.update=true;
 				}
 			}
+			this.elementUpdate(newItem);
 			
 		}
 		else if(command=="addPathway")
@@ -245,7 +246,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 					newItem.update=true;
 				}
 			}
-			
+			this.elementUpdate(newItem);
 		}
 		else if(command=="moveObject")
 		{
@@ -291,6 +292,7 @@ this.advenGameEngine = this.advenGameEngine||{};
 					bitmap.rotation = rotation;
 				}
 			}
+			this.elementUpdate(element);
 		}
 		else if(command=="addInventoryObject")
 		{
@@ -317,12 +319,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 				{
 					
 					newItem.imageUrl=data;
-//TODO: possible bug
 					this.inventorySelectUI.elements.removeChild(newItem.container);
 					newItem.container=null;
 					newItem.update=true;
 				}
 			}
+			this.elementUpdate(newItem);
 		}
 		else if(command=="removeInventoryObject")
 		{
@@ -361,29 +363,23 @@ this.advenGameEngine = this.advenGameEngine||{};
 			var element = this.objectsGetElement(target);
 			element.visibility = (data=="true");
 			element.update=false;
+			this.elementUpdate(element);
+			element.container.visible = element.visibility;
 		}
 		else if(command=="update")
 		{
-			
-			element = null;
-			for (i in this.objects)
+			element = this.objectsGetElement(target);
+			if(element == null)
 			{
-				element = this.objects[i];
-				if(element.update==true)
+				for (i in this.objects)
 				{
-					element.container = new createjs.Container();
-					element.update=false;
-					element.parentThis = this;
-//TODO: find a better way than using parentThis in too many variables
-					this.imageListCallback(element.imageUrl,this.objectOnLoad,element);					
+					element = this.objects[i];
+					this.elementUpdate(element);
 				}
-				else 
-				{
-					if(element.type=="object"||element.type=="background" || element.type=="pathway")
-					{
-						this.objectUpdate(element);
-					}
-				}
+			}
+			else
+			{
+				this.elementUpdate(element);
 			}
 		}
 		else if(command=="logAppend")
@@ -422,6 +418,17 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 		this.stage.update();
 	}
+	p.elementUpdate = function(element)
+	{
+		if(element.update==true)
+		{
+			element.container = new createjs.Container();
+			element.update=false;
+			element.parentThis = this;
+//TODO: find a better way than using parentThis in too many variables
+			this.imageListCallback(element.imageUrl,this.objectOnLoad,element);					
+		}
+	}
 	p.objectsGetElement = function(name)
 	{
 		for (i in this.objects)
@@ -444,7 +451,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	p.objectOnLoad = function(image,data)
 	{
-//TODO: move object to xml location
 		var element=data;
 		var container = element.container;
 		bitmap = new createjs.Bitmap(image);
@@ -454,10 +460,12 @@ this.advenGameEngine = this.advenGameEngine||{};
 		container.element = element;
 		bitmap.width = image.width;
 		bitmap.height = image.height;
+		
 
 		
 		var thisParent=element.parentThis;
-		thisParent.objectUpdate(element);
+		container.parentThis=thisParent;
+		container.onPress = thisParent.objectOnPress;
 		if(element.type=="object")
 		{
 			bitmap.regX = bitmap.width/2;
@@ -495,24 +503,6 @@ this.advenGameEngine = this.advenGameEngine||{};
 		}
 //TODO: Correct updates		
 		thisParent.stage.update();
-	}
-
-	p.objectUpdate = function(element)
-	{
-		var container = element.container;
-		container.visible = element.visibility;
-		for(var i=0;i<container.children.length;i++)
-		{
-				var bitmap = container.children;
-				if(bitmap==null || bitmap.image==null)
-					break;
-				bitmap.x = element.locationX;
-				bitmap.y = element.locationY;
-		}
-		container.parentThis=this;
-		container.onPress = this.objectOnPress;
-		this.stage.update();
-		
 	}
 	p.objectOnPress = function(event)
 	{
@@ -804,6 +794,8 @@ this.advenGameEngine = this.advenGameEngine||{};
 	}
 	p._initializeInventoryUI = function()
 	{
+		
+//TODO: add cache to shapes
 		var parentThis=this;
 		this.inventorySelectUI = new createjs.Container();
 		this.inventoryUI.addChild(this.inventorySelectUI);

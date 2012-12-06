@@ -29,15 +29,7 @@ function parseXml(xml)
 	
 
 		
-	engine.callbackInventoryObjectAdd = function(name,imageUrl)
-	{
-			graphics.executeCommand("addInventoryObject",name,imageUrl);
-			graphics.executeCommand("update");
-	}
-	engine.callbackInventoryObjectRemove = function(name)
-	{
-			graphics.executeCommand("removeInventoryObject",name);
-	}
+	
 	graphics.callbackObjectOnPress = function(element)
 	{
 		engine.eventOccurred(element.type,"","onClick",element.name);
@@ -54,55 +46,47 @@ function parseXml(xml)
 		engine.eventOccurred(element.type,"","onInteract","");
 		engine.eventOccurred(element.type,"","onDeselect",element.name);
 	}
-	engine.callbackOnExecuteCommand = function(message)
+	engine.callbackInventoryObjectAdd = function(name,imageUrl)
 	{
-		
+			graphics.executeCommand("addInventoryObject",name,imageUrl);
+			//graphics.executeCommand("update");
+	}
+	engine.callbackInventoryObjectRemove = function(name)
+	{
+			graphics.executeCommand("removeInventoryObject",name);
+	}
+	engine.callbackOnExecuteCommand = function(message)
+	{		
 		graphics.executeCommand("logAppend","",message);
-		graphics.executeCommand("update");
 	}
 	engine.callbackObjectOnLoad = function(sceneName, objectName, imageUrl,locationX,locationY,rotation)
 	{
 		graphics.executeCommand("addObject",objectName,imageUrl);
-		graphics.executeCommand("update");
 		var locString = advenGameEngine.GraphicsUI.locationString(locationX,locationY,rotation);
 		graphics.executeCommand("moveObject",objectName,locString);
-		graphics.executeCommand("update");
 		
 	}
 	engine.callbackPathwayOnLoad = function(name, imageUrl,locationX,locationY,rotation)
 	{
 		graphics.executeCommand("addPathway",name,imageUrl);
-		graphics.executeCommand("update");
 		var locString = advenGameEngine.GraphicsUI.locationString(locationX,locationY,rotation);
 		graphics.executeCommand("moveObject",name,locString);
-		graphics.executeCommand("update");
 	}
 	engine.callbackSceneOnLoad = function(sceneName, imageUrl)
 	{
 		graphics.executeCommand("changeBackground",sceneName,imageUrl);
-		graphics.executeCommand("update");
 		
 	}
 	engine.callbackObjectVisibilityChange = function(sceneName, objectName,status)
 	{
 		graphics.executeCommand("changeObjectVisibility",objectName,status);
-		graphics.executeCommand("update");
 	}
 	engine.callbackPathwayVisibilityChange = function(name, status)
 	{
 		graphics.executeCommand("changeObjectVisibility",name,status);
-		graphics.executeCommand("update");
 	}
-	//	engine.loadXmlString(xmlString);
 	engine.runPause();
 	
-	//graphics.runTest01();
-	/*graphics.executeCommand("changeBackground","bg","source/images/testSceen/Room_01_wall01_Full_Light1.jpg");
-	graphics.executeCommand("addObject","name","source/images/testSceen/sirtati_01_closed.gif");
-	graphics.executeCommand("update");
-	*/
-	
-		
 }
 
 

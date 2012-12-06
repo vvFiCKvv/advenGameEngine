@@ -28,6 +28,13 @@
 		<scene name="Room_01_wall01" default="true">
 			<!--Possible way outs to another scene or ... -->
 			<background>
+				<pathway name="back">
+					<action event="onClick">
+						<command name="changeScene" data="Room_01_wall02">
+							<message>This is a pathway that exist in all states</message>
+						</command>								
+					</action>
+				</pathway>
 				<states>
 					<state name="lowLight" default="true">
 						<image url="Room_01_wall01_Low_Light.jpg"></image>
@@ -35,7 +42,7 @@
 						<pathway name="west">
 							<action event="onClick">
 								<command name="changeScene" data="Room_01_wall02">
-									<message>going west</message>
+									<message>going west to Room_01_wall02</message>
 								</command>								
 							</action>
 						</pathway>
@@ -170,6 +177,24 @@
 					</states>
 				</object>
 			</objects>
+		</scene>
+		<scene name="Room_01_wall02">
+			<!--Possible way outs to another scene or ... -->
+			<background>
+				<states>
+					<state name="test" default="true">
+						<image url="Room_01_wall02.jpg"></image>
+						<!-- Possible Actions, an action may require some conditions or the use of a specific item -->						
+						<pathway name="east">
+							<action event="onClick">
+								<command name="changeScene" data="Room_01_wall01">
+									<message>going east to Room_01_wall01</message>
+								</command>								
+							</action>
+						</pathway>
+					</state>
+				</states>
+			</background>
 		</scene>
 	</scenes>
 	<inventory>
