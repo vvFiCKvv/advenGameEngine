@@ -1,7 +1,7 @@
 advenGameEngine
 ===============
 It will be a Game Engine specified in adventures point and click.
-The purpose is to create an engine that reads all the game concept(Scenario) from a xml file and execute it dynamicaly.  Dsdsad .
+The purpose is to create an engine that reads all the game concept(Scenario) from a xml file and execute it dynamicaly.
 
 It will be a pure Javascript html5 engine. 
 
